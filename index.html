@@ -100,6 +100,30 @@
     .section:last-child{border-bottom:0;padding-bottom:0}
     .section h4{margin:0 0 10px;font-size:.86rem;letter-spacing:.055em;text-transform:uppercase;color:var(--muted)}
     .section p{margin:0}
+    .role-brief{margin:0 0 20px;padding:20px 22px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-md)}
+    .role-brief h3{font-family:"Noto Sans TC",sans-serif;margin:0 0 6px;font-size:1.05rem}
+    .role-brief p{margin:0;color:var(--muted);font-size:.88rem}
+    .evidence-list{margin:14px 0 0;padding-left:20px;display:grid;gap:6px;font-size:.86rem}
+    .scope-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+    .scope-grid strong,.data-grid strong{display:block;margin-bottom:6px;font-size:.82rem;color:var(--accent-2)}
+    .scope-grid p,.data-grid p{font-size:.88rem}
+    .workflow-table{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}
+    .workflow-row{display:grid;grid-template-columns:52px 100px minmax(180px,1.35fr) minmax(150px,1fr);border-bottom:1px solid var(--line);font-size:.84rem}
+    .workflow-row:last-child{border-bottom:0}
+    .workflow-row>div{padding:11px 12px;border-right:1px solid var(--line)}
+    .workflow-row>div:last-child{border-right:0}
+    .workflow-row.head{background:var(--bg);font-size:.75rem;font-weight:700;color:var(--muted);letter-spacing:.04em}
+    .workflow-row .num{font-weight:700;color:var(--accent)}
+    .workflow-row .owner{font-weight:600}
+    .data-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+    .risk-list{display:grid;gap:10px}
+    .risk-item{display:grid;grid-template-columns:minmax(120px,.8fr) minmax(0,1.5fr);gap:14px;padding:11px 0;border-bottom:1px solid var(--line);font-size:.87rem}
+    .risk-item:last-child{border-bottom:0;padding-bottom:0}
+    .risk-item strong{color:var(--accent-2)}
+    .acceptance{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .acceptance-box{background:var(--bg);padding:15px 16px;border-radius:var(--r-sm)}
+    .acceptance-box strong{display:block;margin-bottom:7px;font-size:.82rem;color:var(--green)}
+    .callout{margin-top:12px;padding:12px 14px;background:var(--green-soft);color:var(--green);border-radius:var(--r-sm);font-size:.86rem}
     .flow{display:grid;grid-template-columns:1fr 38px 1fr;gap:8px;align-items:stretch}
     .flow-block{background:var(--bg);padding:16px;border-radius:var(--r-sm)}
     .flow-block strong{display:block;margin-bottom:8px;font-size:.84rem;color:var(--accent-2)}
@@ -132,7 +156,8 @@
     @media(max-width:620px){
       .shell{padding:18px 14px 44px}.intro{padding:18px 4px 24px}.intro h1{font-size:2.12rem;max-width:12ch}
       .input-panel,.case{border-radius:18px}.panel-head,.form{padding-left:16px;padding-right:16px}.output-head{display:block}.output-actions{justify-content:flex-start;margin-top:12px}
-      textarea{min-height:250px}.case-hero{grid-template-columns:1fr;padding:22px 18px}.mode{text-align:left}.case-body{padding:5px 18px 22px}.flow{grid-template-columns:1fr}.flow-arrow{transform:rotate(90deg);height:28px}.split,.summary{grid-template-columns:1fr}.case-tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:5px;scrollbar-width:none}.case-tab{flex:none}.matrix{grid-template-columns:62px 1fr 1fr}.phase{grid-template-columns:64px 1fr}
+      textarea{min-height:250px}.case-hero{grid-template-columns:1fr;padding:22px 18px}.mode{text-align:left}.case-body{padding:5px 18px 22px}.flow{grid-template-columns:1fr}.flow-arrow{transform:rotate(90deg);height:28px}.split,.summary,.scope-grid,.data-grid,.acceptance{grid-template-columns:1fr}.case-tabs{flex-wrap:wrap;overflow:visible;padding-bottom:5px}.case-tab{flex:none}.matrix{grid-template-columns:62px 1fr 1fr}.phase{grid-template-columns:64px 1fr}
+      .workflow-table{border:0;display:grid;gap:10px}.workflow-row.head{display:none}.workflow-row{display:block;border:1px solid var(--line);border-radius:var(--r-sm);padding:11px 12px}.workflow-row>div{border:0;padding:3px 0}.workflow-row>div:before{content:attr(data-label);display:inline-block;min-width:68px;color:var(--muted);font-size:.73rem;font-weight:700}.risk-item{grid-template-columns:1fr;gap:3px}
     }
     @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
   </style>
@@ -191,6 +216,7 @@
             <div class="output-actions"><button class="mini-btn" id="copyBtn" type="button">複製 Markdown</button><button class="mini-btn" id="downloadBtn" type="button">下載 .md</button></div>
           </div>
           <div class="assumptions" id="assumptions"></div>
+          <section class="role-brief" id="roleBrief" aria-label="職責判讀"></section>
           <nav class="case-tabs" id="caseTabs" aria-label="Use case 切換"></nav>
           <div id="caseContainer"></div>
           <div class="summary">
@@ -227,6 +253,93 @@
     {id:'engineering', keys:['code','software','engineer','developer','api','architecture','system','程式','開發','工程','架構'], title:'工程任務規劃、實作與獨立審查', mode:'Workflow · Plan + independent review', delegation:'Augmentation', pain:'需求轉成實作時容易漏掉邊界案例；生成程式碼若由同一上下文自審，難以發現自己的錯誤。', before:['人工拆需求與探索程式碼','實作後才補測試','PR 審查混合風格與正確性問題','修正後反覆來回'], after:['Plan mode 先探索影響範圍','以測試與 schema 定義驗收條件','實作 agent 在受限工具集內修改','獨立 session 依 diff 與測試結果審查'], frameworks:['F9/CCAR-F','F15/CCAR-F','F16/CCAR-F','F17/CCAR-F','F23/CCAR-F','F32/CCAR-P'], review:'高風險模組、權限與資料遷移必須由資深工程師審查；生成與審查使用獨立實例，所有變更通過測試與安全 gate 才可合併。', metrics:['lead time 與一次通過率','測試覆蓋與回歸缺陷','PR 人工審查時間','成本、延遲與安全事件'], governance:'工具集依角色限縮，秘密不進 prompt 或版本庫；不可信 repo 內容隔離，寫入與部署權限分離。', pros:['減少探索與樣板程式時間','測試先行讓驗收更清楚','獨立審查降低自我確認偏誤'], cons:['複雜架構決策仍需人負責','錯誤測試會錯誤地放行','大型程式庫的 context 成本高'], rollout:['選低風險 repo 與單一任務類型','建立基準測試與人工審查紀錄','通過回歸 gate 後逐步擴大權限']}
   ];
 
+  var detailProfiles={
+    planning:{
+      outcome:'建立單一版本的規劃底稿，讓每次預測更新都能追到責任人、假設、來源與核准紀錄。',
+      deliverables:'結構化輸入模板、例外清單、差異說明草稿、核准後 forecast package。',
+      outOfScope:'AI 不自行設定成長率、不改寫已核准假設，也不直接回寫正式財務系統。',
+      inputs:'實際數、預算、前次 forecast、科目與 cost center 主檔、project owner 提交的 driver。',
+      systems:'ERP / planning tool、試算表或表單、權威資料倉儲、核准工作流。',
+      access:'服務帳號只讀取必要範圍；正式版本回寫由具權限的 Finance owner 核准。',
+      steps:[['收件','Business owner','依統一 schema 提交金額、driver、期間與說明','缺欄位或格式錯誤即退回'],['驗證','Rule engine','核對加總、期間、科目、重複列與異常波動','輸出可重現的例外代碼'],['解釋','AI','依 driver 與歷史差異起草變動說明','每段綁定來源列，不補造原因'],['審核','Finance BP','確認假設、挑戰 business owner 並處理例外','重大變動需二次核准'],['發布','Finance owner','鎖定版本並輸出 forecast package','保留版本、來源與簽核 trace']],
+      risks:[['口徑漂移','主檔版本化；新科目或定義變更先阻擋再對齊。'],['AI 把相關性寫成原因','敘事只能引用已提交 driver；無證據時標示「待確認」。'],['例外過多造成塞車','用歷史資料校準閾值，依金額與風險分級路由。']],
+      acceptance:['與人工版逐列金額一致，重大差異為零','100% 敘事中的數字可追到來源列','例外 recall 達門檻且不以漏報換速度'],
+      rollback:'影子模式不回寫正式系統；任一重大數字錯誤即停用自動發布，回到原流程。'
+    },
+    reporting:{
+      outcome:'把「取數—計算—解釋—審核」拆開，讓管理報告的數字確定、敘事可追溯、觀點仍由負責人承擔。',
+      deliverables:'標準 variance table、claim–source 對照、commentary 初稿、主管版摘要與問題清單。',
+      outOfScope:'AI 不發布報告、不替管理層做資源取捨，也不把未驗證的相關性寫成因果。',
+      inputs:'Actual / Budget / Forecast / LY、指標定義、組織與專案維度、已確認的 business drivers。',
+      systems:'資料倉儲或 BI semantic layer、報表模板、簡報工具、核准與版本管理。',
+      access:'讀取資料依部門與層級切分；對外版本只由報告 owner 建立並發布。',
+      steps:[['取數','Data pipeline','按固定日期與版本抽取權威數據','記錄查詢、快照時間與資料版本'],['計算','Rule engine','計算金額差、百分比差與貢獻度','除零、符號與匯率規則程式化'],['起草','AI','依 materiality 排序並生成 commentary','每個 claim 附數字、比較基準與來源'],['挑戰','Finance BP','補入業務背景，刪除無證據推論','重大差異需 owner 解釋'],['定稿','Report owner','核對數字、語氣與決策要求後發布','完整保存核准版本']],
+      risks:[['數字正確但版本錯','報告明示 period、scenario 與 snapshot；禁止混用版本。'],['敘事空泛或過度推論','以「變化—driver—影響—下一步」rubric 驗收。'],['敏感細項曝光','按讀者角色聚合與遮蔽，測試下載檔權限。']],
+      acceptance:['抽樣與人工報告計算結果 100% 一致','每個外顯數字與 claim 均有來源','主管退回原因可被分類且連續兩期下降'],
+      rollback:'先雙軌產出；若數字驗證或權限檢查失敗，只交付人工版。'
+    },
+    support:{
+      outcome:'讓標準問題自助完成，並把模糊、敏感或真正需要判斷的請求完整交給專家。',
+      deliverables:'意圖分類、附來源回答、澄清問題、人工工單與可量化的知識缺口。',
+      outOfScope:'不回答未授權資料、不自行解釋政策例外、不用生成式回答掩蓋「查不到」。',
+      inputs:'FAQ、政策、指標字典、資料權限、歷史已解工單與 owner 名錄。',
+      systems:'聊天或入口表單、知識庫 / RAG、BI 查詢層、工單與身分權限系統。',
+      access:'檢索與查詢沿用使用者權限；回答前後都做資料列與欄位層級檢查。',
+      steps:[['受理','Requester','提交問題、用途、期間與範圍','缺必要欄位先追問，不猜測'],['路由','Classifier','辨識 FAQ、數據查詢、分析或政策例外','敏感與低覆蓋意圖直送人工'],['檢索','RAG / Query layer','找定義、來源與有效日期，必要時跑核准查詢','無來源時停止生成'],['回答','AI','以答案、口徑、來源、限制四段輸出','引用必須可開啟且內容相符'],['升級','Domain owner','接收對話摘要、已查來源與未解問題','解決後更新知識缺口']],
+      risks:[['看似合理但答錯口徑','答案必帶定義與日期；建立對抗性測試集。'],['越權讀取資料','query 前後各做一次 ACL，記錄使用者與資料範圍。'],['錯誤自動化被大量放大','設定 kill switch、流量上限與逐步放量。']],
+      acceptance:['Top 20 問題的 grounded accuracy 達預設門檻','所有拒答與升級都有明確理由','敏感資料越權測試零通過'],
+      rollback:'關閉自動回答，保留入口與工單摘要；任何權限事件立即停用查詢工具。'
+    },
+    process:{
+      outcome:'把固定控制寫成可驗證規則，讓人只處理例外、不可逆動作與跨部門判斷。',
+      deliverables:'任務清單、狀態機、例外佇列、核准證據、失敗恢復與交接摘要。',
+      outOfScope:'AI 不繞過既有核准、不自行重試可能重複扣款或寫入的動作。',
+      inputs:'SOP、控制點、角色權限、截止時間、上游狀態與可重試規則。',
+      systems:'工作管理、ERP / CRM 等交易系統、通知管道、稽核日誌。',
+      access:'讀寫權限分離；高風險寫入使用短效授權並要求明確核准。',
+      steps:[['建單','Workflow','依事件建立任務、owner、期限與前置條件','重複事件以 idempotency key 阻擋'],['檢核','Rule engine','驗證資料完整、權限與上游狀態','確定性條件未過即停止'],['處理','Automation','執行低風險、可逆且定義明確的步驟','每步輸出狀態與證據'],['例外','Human owner','處理歧義、逾時與不可逆操作','核准必須綁定具體動作'],['結案','Workflow owner','確認下游成功並保存決策摘要','失敗可從 checkpoint 恢復']],
+      risks:[['重複執行','所有外部寫入使用唯一鍵，重試前先查最終狀態。'],['規則過期','SOP 變更觸發規則 review 與回歸測試。'],['通知疲勞','按風險分級，只把需決策的例外推給人。']],
+      acceptance:['所有控制點均可由第三者重放驗證','重複執行與遺漏核准事件為零','故障演練可從最近 checkpoint 恢復'],
+      rollback:'先保留原 SOP 為主路徑；關閉自動寫入後仍可由人工完成全流程。'
+    },
+    research:{
+      outcome:'以可追溯的 claim–source 單元擴大研究覆蓋，同時明確呈現衝突、缺口與資料時效。',
+      deliverables:'研究問題樹、來源清單、claim–source matrix、衝突紀錄、決策備忘與待查缺口。',
+      outOfScope:'Agent 不把搜尋摘要當原始證據、不補寫找不到的數字，也不執行交易或對外發布。',
+      inputs:'研究問題、決策期限、地域與期間、可信來源層級、排除條件。',
+      systems:'搜尋 / 文件庫、擷取與引用驗證、研究工作區、版本管理。',
+      access:'研究 worker 預設只讀；內部文件依專案授權，外部內容永不取得系統指令權。',
+      steps:[['定義','Decision owner','寫清決策、範圍、截止日與證據標準','問題過大先縮小，不直接開搜'],['拆題','Coordinator','建立互斥且完整的子題與停止條件','每個子題指定來源優先序'],['蒐集','Workers','平行找原始來源並回傳 claim–source','搜尋片段不可直接當證據'],['綜合','Synthesizer','比較來源、標記衝突與覆蓋缺口','重要結論至少交叉驗證'],['審核','Subject expert','開啟來源逐條查核後形成建議','區分事實、推論與建議']],
+      risks:[['捏造或錯配引用','引用驗證器核對可開啟性、日期與原文支持度。'],['多 agent 錯誤傳播','worker 只回結構化證據；合成器保留原始映射。'],['過期資料誤當現況','每項資料標示 as-of 日期與時效限制。']],
+      acceptance:['重要 claim 的引用支持率達門檻','來源衝突與未覆蓋問題沒有被隱藏','專家抽查可由備忘錄重建推論鏈'],
+      rollback:'研究輸出只作草稿；引用驗證未過則退回人工研究，不進決策材料。'
+    },
+    content:{
+      outcome:'加快版本探索與低價值整理，同時把品牌、法務與事實性主張分開驗證。',
+      deliverables:'結構化 brief、多版本草稿、品牌檢查、claim–source 表與核准稿。',
+      outOfScope:'AI 不自行發布、不引用未核實的數字，也不取代品牌或法務 owner 的核准。',
+      inputs:'受眾、目標、channel、品牌語氣、禁語、素材、主張來源與法務限制。',
+      systems:'內容管理、素材庫、品牌規範、審核工作流與發布工具。',
+      access:'生成工具只讀核准素材；發布權限與內容生成權限分離。',
+      steps:[['Brief','Content owner','定義目的、受眾、CTA、限制與事實來源','缺來源的主張先移除'],['起草','AI workers','依不同角度平行產生有限版本','不得超出 brief 與來源'],['評估','Evaluator','分別檢查品牌、清晰度、法務與事實性','評分附具體證據與修改點'],['改寫','Content owner','整合觀點並保留人類語氣與判斷','高風險主張交法務'],['發布','Publisher','核對最終資產、連結與版本後上線','發布動作由人執行']],
+      risks:[['品牌語氣趨同','以真實高品質內容做 few-shot，人工追蹤改寫幅度。'],['引用或產品宣稱失實','所有可驗證主張進 claim–source 表。'],['敏感素材誤用','素材分級、最小權限與發布前清單。']],
+      acceptance:['品牌與法務漏檢率不劣於人工基準','外部主張 100% 有核准來源','節省時間不以增加返工為代價'],
+      rollback:'維持人工發布與版本歷史；任一高風險漏檢即停用該內容類型。'
+    },
+    engineering:{
+      outcome:'讓 AI 加速探索與實作，但以測試、權限邊界與獨立審查控制變更風險。',
+      deliverables:'影響範圍分析、實作計畫、最小 diff、測試證據、安全檢查與審查摘要。',
+      outOfScope:'Agent 不持有 production deploy 權限、不繞過 branch protection，也不把秘密放入 prompt。',
+      inputs:'需求、驗收條件、repo 文件、架構限制、測試、issue 與安全政策。',
+      systems:'版本控制、CI、測試環境、程式碼搜尋、issue / PR 與觀測工具。',
+      access:'依任務限制可讀寫路徑；部署、秘密與高風險設定維持獨立權限。',
+      steps:[['探索','Planner','定位受影響模組、相依性與未知項','先讀測試與 repo 規範'],['定義','Engineer','把需求轉為測試與可驗收條件','高風險變更先取得設計核准'],['實作','Coding agent','產生最小修改並持續跑窄測試','不改任務外檔案'],['審查','Independent reviewer','只看需求、diff 與測試證據進行獨立檢查','發現阻斷項即退回'],['合併','Human maintainer','確認 CI、安全與回滾方案後合併','production deploy 另行核准']],
+      risks:[['測試本身錯誤','加入負向與變異測試，關鍵邏輯由人審查。'],['大 context 導致漏讀','先建程式碼地圖，再逐檔載入相關範圍。'],['權限或供應鏈風險','鎖版本、掃描依賴，工具權限按任務縮減。']],
+      acceptance:['驗收測試、回歸與安全 gate 全通過','人工 review 未發現任務外修改','可用既有 release 機制安全回滾'],
+      rollback:'變更維持小批次與 feature flag；失敗時 revert commit，不讓 agent 自行修 production。'
+    }
+  };
+
   var state={cases:[],markdown:''};
   var $=function(id){return document.getElementById(id)};
   function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
@@ -258,22 +371,34 @@
     resp.forEach(function(r){var lower=r.toLowerCase(),s=0;t.keys.forEach(function(k){if(lower.indexOf(k.toLowerCase())>-1)s++});if(s>bestScore){bestScore=s;best=r}});return best;
   }
   function list(items,cls){return '<ul class="check-list '+(cls||'')+'">'+items.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>'}
+  function workflowRows(steps){
+    return '<div class="workflow-table"><div class="workflow-row head"><div>步驟</div><div>Owner</div><div>執行內容</div><div>產出／Gate</div></div>'+steps.map(function(s,i){return '<div class="workflow-row"><div class="num" data-label="步驟">0'+(i+1)+'</div><div class="owner" data-label="Owner">'+esc(s[0])+' · '+esc(s[1])+'</div><div data-label="執行">'+esc(s[2])+'</div><div data-label="Gate">'+esc(s[3])+'</div></div>'}).join('')+'</div>';
+  }
+  function riskRows(risks){return '<div class="risk-list">'+risks.map(function(r){return '<div class="risk-item"><strong>'+esc(r[0])+'</strong><span>'+esc(r[1])+'</span></div>'}).join('')+'</div>'}
   function renderCase(t,i,resp){
-    var q=bestResponsibility(t,resp);
+    var q=bestResponsibility(t,resp),d=detailProfiles[t.id];
     return '<article class="case '+(i===0?'active':'')+'" id="case-'+i+'" role="tabpanel">'+
       '<header class="case-hero"><div><div class="case-index">UC-'+(i+1)+'</div><h3>'+esc(t.title)+'</h3><p class="quote">對應職責：「'+esc(q)+'」</p></div><div class="mode"><strong>'+esc(t.mode)+'</strong><span>Delegation：'+esc(t.delegation)+'</span></div></header>'+
       '<div class="case-body">'+
-      '<section class="section"><h4>過去痛點</h4><p>'+esc(t.pain)+'</p></section>'+
+      '<section class="section"><h4>問題與目標</h4><p>'+esc(t.pain)+'</p><div class="callout"><strong>目標狀態：</strong>'+esc(d.outcome)+'</div></section>'+
+      '<section class="section"><h4>落地範圍</h4><div class="scope-grid"><div><strong>核心交付物</strong><p>'+esc(d.deliverables)+'</p></div><div><strong>AI 的角色</strong><p>'+esc(t.delegation)+'：依定義流程產生草稿、分類或執行低風險步驟。</p></div><div><strong>明確不做</strong><p>'+esc(d.outOfScope)+'</p></div></div></section>'+
       '<section class="section"><h4>Before → After</h4><div class="flow"><div class="flow-block"><strong>現在</strong><ol>'+t.before.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ol></div><div class="flow-arrow">→</div><div class="flow-block"><strong>導入後</strong><ol>'+t.after.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ol></div></div></section>'+
+      '<section class="section"><h4>執行藍圖：Owner、產出與 Gate</h4>'+workflowRows(d.steps)+'</section>'+
       '<section class="section"><h4>框架選擇</h4><div class="tag-row">'+t.frameworks.map(function(x){return '<span class="tag">'+esc(x)+'</span>'}).join('')+'</div><p style="margin-top:12px;font-size:.9rem">'+(t.mode.indexOf('Agent')===0?'任務路徑無法預先確定，需要模型動態拆解與工具選擇，因此採 Agent；同時保留停止條件、來源映射與人工 checkpoint。':'路徑固定且可預測，因此用程式碼編排的 Workflow，而不是讓模型自由決定所有步驟。')+'</p></section>'+
+      '<section class="section"><h4>資料、系統與權限</h4><div class="data-grid"><div><strong>必要輸入</strong><p>'+esc(d.inputs)+'</p></div><div><strong>可能整合</strong><p>'+esc(d.systems)+'</p></div><div><strong>權限邊界</strong><p>'+esc(d.access)+'</p></div></div></section>'+
       '<section class="section split"><div><h4>人工把關</h4><p>'+esc(t.review)+'</p></div><div><h4>成本與治理</h4><p>'+esc(t.governance)+'</p></div></section>'+
-      '<section class="section split"><div><h4>評估指標</h4>'+list(t.metrics)+'</div><div><h4>導入步驟</h4>'+list(t.rollout)+'</div></section>'+
-      '<section class="section split"><div><h4>優點</h4>'+list(t.pros,'pros')+'</div><div><h4>限制與風險</h4>'+list(t.cons,'cons')+'</div></section>'+
+      '<section class="section"><h4>主要風險與控制</h4>'+riskRows(d.risks)+'</section>'+
+      '<section class="section"><h4>試點如何判定成功</h4><div class="acceptance"><div class="acceptance-box"><strong>量測指標</strong>'+list(t.metrics)+'</div><div class="acceptance-box"><strong>Go / No-go 驗收門檻</strong>'+list(d.acceptance)+'</div></div><div class="callout"><strong>回滾條件：</strong>'+esc(d.rollback)+'</div></section>'+
+      '<section class="section split"><div><h4>導入步驟</h4>'+list(t.rollout)+'</div><div><h4>優點</h4>'+list(t.pros,'pros')+'</div></section>'+
+      '<section class="section"><h4>限制與前置條件</h4>'+list(t.cons,'cons')+'</section>'+
       '</div></article>';
   }
   function buildMarkdown(title,cases,resp,url){
-    var out=['# '+title+'：AI User Case 規劃','',url?'來源：'+url:'','> 假設：JD 未列出的系統、團隊規模、資料權限與 SLA 皆待 discovery 確認；所有效益數字需經試點驗證。',''];
-    cases.forEach(function(t,i){out.push('## UC-'+(i+1)+'｜'+t.title,'','**對應 JD 職責**：'+bestResponsibility(t,resp),'','**過去痛點**：'+t.pain,'','**模式**：'+t.mode+'；'+t.delegation,'','**框架**：'+t.frameworks.join('、'),'','### Before','- '+t.before.join('\n- '),'','### After','- '+t.after.join('\n- '),'','**人工把關**：'+t.review,'','**評估指標**：'+t.metrics.join('、'),'','**成本與治理**：'+t.governance,'','**優點**：'+t.pros.join('；'),'','**限制與風險**：'+t.cons.join('；'),'','**導入步驟**：','1. '+t.rollout.join('\n2. '),'');});
+    var out=['# '+title+'：AI User Case 規劃','',url?'來源：'+url:'','> 假設：JD 未列出的系統、團隊規模、資料權限與 SLA 皆待 discovery 確認；所有效益數字需經試點驗證。','','## JD 職責判讀','',resp.map(function(r){return '- '+r}).join('\n'),''];
+    cases.forEach(function(t,i){
+      var d=detailProfiles[t.id];
+      out.push('## UC-'+(i+1)+'｜'+t.title,'','**對應 JD 職責**：'+bestResponsibility(t,resp),'','### 問題與目標','',t.pain,'','**目標狀態**：'+d.outcome,'','**核心交付物**：'+d.deliverables,'','**明確不做**：'+d.outOfScope,'','**模式**：'+t.mode+'；'+t.delegation,'','**框架**：'+t.frameworks.join('、'),'','### Before','- '+t.before.join('\n- '),'','### After','- '+t.after.join('\n- '),'','### 執行藍圖','',d.steps.map(function(s,n){return (n+1)+'. **'+s[0]+'｜'+s[1]+'**：'+s[2]+'；Gate：'+s[3]}).join('\n'),'','### 資料、系統與權限','','- 必要輸入：'+d.inputs,'- 可能整合：'+d.systems,'- 權限邊界：'+d.access,'','**人工把關**：'+t.review,'','**成本與治理**：'+t.governance,'','### 主要風險與控制','',d.risks.map(function(r){return '- **'+r[0]+'**：'+r[1]}).join('\n'),'','### 試點驗收','','**量測指標**：'+t.metrics.join('、'),'','**Go / No-go 門檻**：','- '+d.acceptance.join('\n- '),'','**回滾條件**：'+d.rollback,'','**導入步驟**：','1. '+t.rollout.join('\n2. '),'','**優點**：'+t.pros.join('；'),'','**限制與前置條件**：'+t.cons.join('；'),'');
+    });
     out.push('## 導入路線圖','','- 第 1 週：Discovery，確認流程 owner、權威資料源、基準工時與風險邊界。','- 第 2–3 週：第一個 use case 影子模式，與人工版逐筆比對。','- 第 4 週：用 accuracy、latency、cost、safety、security 做 go / no-go。','- 季度：只放大通過 gate 的流程；維持分層抽查、trace 與回歸評測。');return out.filter(function(x,i){return !(x===''&&i===2&&!url)}).join('\n');
   }
   function setFallback(open){
@@ -358,6 +483,7 @@
     $('roleTitle').textContent=parsed.title+'｜AI 導入藍圖';
     $('resultMeta').textContent='從 '+parsed.responsibilities.length+' 條可辨識職責，生成 '+cases.length+' 個 use case';
     $('assumptions').textContent='待確認假設：JD 未列出的系統、團隊規模、資料權限與 SLA，需在 discovery 階段補齊。以下成效皆是驗證方向，不是已實現數字。';
+    $('roleBrief').innerHTML='<h3>職責判讀與選案依據</h3><p>先保留 JD 原文證據，再依重複頻率、決策成本、流程可預測性與資料可得性選出 use case；不是看到「自動化」就一律套 Agent。</p><ol class="evidence-list">'+parsed.responsibilities.slice(0,8).map(function(r){return '<li>'+esc(r)+'</li>'}).join('')+'</ol>';
     $('caseTabs').innerHTML=cases.map(function(t,i){return '<button class="case-tab" type="button" role="tab" data-i="'+i+'" aria-selected="'+(i===0?'true':'false')+'">UC-'+(i+1)+' '+esc(t.title)+'</button>'}).join('');
     $('caseContainer').innerHTML=cases.map(function(t,i){return renderCase(t,i,parsed.responsibilities)}).join('');
     var hi=cases.slice(0,2).map(function(t,i){return 'UC-'+(i+1)+' '+t.title.replace(/工作流|半自動化|與例外管理/g,'')}).join('<br>');
