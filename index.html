@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="icon" href="data:," />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>JD AI User Case 規劃工具</title>
+  <style>
+    :root{
+      color-scheme:light dark;
+      --bg:#f4f2ed;--paper:#fffefb;--ink:#1e2423;--muted:#66706d;--line:#d8d7d0;
+      --accent:#d44a2c;--accent-2:#a4321d;--accent-soft:#f7ddd5;--green:#146a50;--green-soft:#dceee7;
+      --amber:#8b5b05;--amber-soft:#f6e8c8;--shadow:0 18px 48px rgba(35,43,41,.08);
+      --r-sm:8px;--r-md:14px;--r-lg:24px;
+    }
+    @media(prefers-color-scheme:dark){
+      :root{--bg:#161a19;--paper:#202523;--ink:#f3f1e9;--muted:#a9b1ad;--line:#3b413e;
+        --accent:#ff7659;--accent-2:#ff9a84;--accent-soft:#4b2b25;--green:#76d2af;--green-soft:#213e34;
+        --amber:#efc267;--amber-soft:#41351f;--shadow:0 20px 55px rgba(0,0,0,.28)}
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans","Noto Sans TC",sans-serif;line-height:1.6}
+    button,input,textarea{font:inherit}
+    button{color:inherit}
+    a{color:var(--accent-2);text-underline-offset:3px}
+    .shell{width:min(1440px,100%);margin:0 auto;padding:28px clamp(18px,4vw,56px) 64px}
+    .intro{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.6fr);gap:36px;align-items:end;padding:28px 0 34px;border-bottom:1px solid var(--line)}
+    .intro h1{font-family:"Noto Sans TC",sans-serif;font-size:clamp(2rem,5vw,3.35rem);letter-spacing:-.045em;line-height:1.08;margin:0;max-width:15ch}
+    .intro h1 em{font-style:normal;color:var(--accent)}
+    .intro p{margin:0;color:var(--muted);font-size:1.02rem;max-width:46ch}
+    .framework-note{display:flex;gap:12px;align-items:flex-start;margin-top:16px;color:var(--muted);font-size:.88rem}
+    .framework-note strong{color:var(--ink)}
+    .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);margin-top:7px;flex:none}
+    .workspace{display:grid;grid-template-columns:minmax(310px,420px) minmax(0,1fr);gap:30px;padding-top:30px;align-items:start}
+    .input-panel{position:sticky;top:18px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden}
+    .panel-head{padding:22px 22px 12px}
+    .step{font-size:.75rem;font-weight:700;letter-spacing:.12em;color:var(--accent);text-transform:uppercase}
+    .panel-head h2{font-family:"Noto Sans TC",sans-serif;margin:4px 0 0;font-size:1.25rem;letter-spacing:-.02em}
+    .form{padding:12px 22px 22px}
+    label{display:block;font-weight:600;font-size:.9rem;margin:0 0 7px}
+    .optional{font-weight:400;color:var(--muted)}
+    input,textarea{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:var(--r-sm);padding:12px 13px;outline:none;transition:border .15s,box-shadow .15s}
+    input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+    textarea{min-height:310px;resize:vertical;line-height:1.55}
+    .field+.field{margin-top:17px}
+    .hint{font-size:.79rem;color:var(--muted);margin:7px 0 0}
+    .actions{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:18px}
+    .btn{border:0;border-radius:10px;padding:11px 15px;font-weight:600;cursor:pointer;transition:background .15s,color .15s,transform .15s}
+    .btn:active{transform:translateY(1px)}
+    .btn-primary{background:var(--accent);color:white}
+    .btn-primary:hover{background:var(--accent-2)}
+    .btn-secondary{background:transparent;border:1px solid var(--line)}
+    .btn-secondary:hover{background:var(--bg)}
+    .input-divider{display:flex;align-items:center;gap:10px;margin:18px 0 14px;color:var(--muted);font-size:.76rem}
+    .input-divider:before,.input-divider:after{content:"";height:1px;background:var(--line);flex:1}
+    .fallback-toggle{width:100%;border:1px solid var(--line);background:transparent;border-radius:var(--r-sm);padding:10px 12px;font-weight:600;cursor:pointer;text-align:left}
+    .fallback-toggle:hover{border-color:var(--accent);color:var(--accent)}
+    .text-fallback{display:none;margin-top:14px}
+    .text-fallback.show{display:block}
+    .link-mode{display:none;margin-top:14px;padding:13px 14px;background:var(--amber-soft);color:var(--amber);border-radius:var(--r-sm);font-size:.84rem}
+    .link-mode.show{display:block}
+    .link-mode strong{display:block;color:var(--ink);margin-bottom:3px}
+    .status{min-height:24px;margin-top:10px;font-size:.82rem;color:var(--accent-2)}
+    .status.success{color:var(--green)}
+    .btn:disabled{cursor:wait;opacity:.68}
+    .results{min-width:0}
+    .empty{min-height:600px;border:1px dashed var(--line);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;padding:38px;text-align:center;background:color-mix(in srgb,var(--paper) 55%,transparent)}
+    .empty-inner{max-width:430px}
+    .empty svg{width:54px;height:54px;color:var(--accent);margin-bottom:15px}
+    .empty h2{font-family:"Noto Sans TC",sans-serif;font-size:1.45rem;margin:0 0 8px}
+    .empty p{margin:0;color:var(--muted)}
+    .output{display:none}
+    .output.show{display:block}
+    .output-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:18px}
+    .output-head h2{font-family:"Noto Sans TC",sans-serif;font-size:1.7rem;line-height:1.25;margin:0 0 4px;letter-spacing:-.03em}
+    .output-head p{margin:0;color:var(--muted)}
+    .output-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .mini-btn{border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:8px 11px;font-size:.82rem;cursor:pointer}
+    .mini-btn:hover{border-color:var(--accent);color:var(--accent)}
+    .assumptions{background:var(--amber-soft);color:var(--amber);padding:12px 15px;border-radius:var(--r-sm);margin:0 0 20px;font-size:.88rem}
+    .case-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+    .case-tab{border:1px solid var(--line);background:transparent;border-radius:999px;padding:7px 12px;font-size:.82rem;cursor:pointer;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .case-tab[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+    .case{display:none;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow)}
+    .case.active{display:block}
+    .case-hero{padding:28px 30px 23px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr auto;gap:18px}
+    .case-index{color:var(--accent);font-weight:700;font-size:.78rem;letter-spacing:.12em}
+    .case h3{font-family:"Noto Sans TC",sans-serif;font-size:1.55rem;letter-spacing:-.03em;line-height:1.3;margin:4px 0 10px}
+    .quote{margin:0;color:var(--muted);font-size:.9rem}
+    .mode{align-self:start;text-align:right}
+    .mode strong{display:block;font-size:.88rem;color:var(--green)}
+    .mode span{font-size:.76rem;color:var(--muted)}
+    .case-body{padding:10px 30px 30px}
+    .section{padding:22px 0;border-bottom:1px solid var(--line)}
+    .section:last-child{border-bottom:0;padding-bottom:0}
+    .section h4{margin:0 0 10px;font-size:.86rem;letter-spacing:.055em;text-transform:uppercase;color:var(--muted)}
+    .section p{margin:0}
+    .flow{display:grid;grid-template-columns:1fr 38px 1fr;gap:8px;align-items:stretch}
+    .flow-block{background:var(--bg);padding:16px;border-radius:var(--r-sm)}
+    .flow-block strong{display:block;margin-bottom:8px;font-size:.84rem;color:var(--accent-2)}
+    .flow-block ol{margin:0;padding-left:19px;font-size:.9rem}
+    .flow-arrow{display:grid;place-items:center;color:var(--accent);font-size:1.4rem}
+    .tag-row{display:flex;gap:7px;flex-wrap:wrap}
+    .tag{font-size:.75rem;padding:5px 8px;border-radius:6px;background:var(--accent-soft);color:var(--accent-2)}
+    .split{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+    .check-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+    .check-list li{position:relative;padding-left:18px;font-size:.9rem}
+    .check-list li:before{content:"";position:absolute;left:0;top:.68em;width:7px;height:7px;border-radius:50%;background:var(--green)}
+    .pros li:before{background:var(--green)}.cons li:before{background:var(--accent)}
+    .summary{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:24px}
+    .summary section{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-md);padding:22px}
+    .summary h3{font-family:"Noto Sans TC",sans-serif;margin:0 0 14px;font-size:1.1rem}
+    .matrix{display:grid;grid-template-columns:76px 1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);font-size:.78rem}
+    .matrix>div{background:var(--paper);padding:9px}
+    .matrix .axis{color:var(--muted);font-weight:600}
+    .roadmap{display:grid;gap:11px}
+    .phase{display:grid;grid-template-columns:76px 1fr;gap:10px;font-size:.86rem}
+    .phase strong{color:var(--accent)}
+    .sources{margin-top:18px;padding:20px 22px;border-top:1px solid var(--line);color:var(--muted);font-size:.78rem}
+    .sources summary{cursor:pointer;color:var(--ink);font-weight:600}
+    .sources ul{padding-left:18px;margin:12px 0 0}
+    .toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:var(--ink);color:var(--paper);border-radius:999px;padding:9px 14px;font-size:.82rem;transition:.22s;z-index:10}
+    .toast.show{opacity:1;transform:translate(-50%,0)}
+    @media(max-width:900px){
+      .intro{grid-template-columns:1fr;gap:14px}.workspace{grid-template-columns:1fr}.input-panel{position:static}.empty{min-height:360px}
+    }
+    @media(max-width:620px){
+      .shell{padding:18px 14px 44px}.intro{padding:18px 4px 24px}.intro h1{font-size:2.12rem;max-width:12ch}
+      .input-panel,.case{border-radius:18px}.panel-head,.form{padding-left:16px;padding-right:16px}.output-head{display:block}.output-actions{justify-content:flex-start;margin-top:12px}
+      textarea{min-height:250px}.case-hero{grid-template-columns:1fr;padding:22px 18px}.mode{text-align:left}.case-body{padding:5px 18px 22px}.flow{grid-template-columns:1fr}.flow-arrow{transform:rotate(90deg);height:28px}.split,.summary{grid-template-columns:1fr}.case-tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:5px;scrollbar-width:none}.case-tab{flex:none}.matrix{grid-template-columns:62px 1fr 1fr}.phase{grid-template-columns:64px 1fr}
+    }
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="intro">
+      <div>
+        <h1>把 JD 拆成<em>可落地</em>的 AI 工作流</h1>
+      </div>
+      <div>
+        <p>從每條職責反推痛點，判斷該用 Workflow 還是 Agent，再補上人工把關、評估指標與導入路線。</p>
+        <div class="framework-note"><span class="dot"></span><span>方法庫涵蓋 Anthropic 四張官方認證公開教材中的 <strong>46 個框架</strong>；不公開的課內細節不臆測。</span></div>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <aside class="input-panel" aria-label="JD 輸入區">
+        <div class="panel-head"><span class="step">Step 01</span><h2>貼上 JD 連結</h2></div>
+        <form class="form" id="jdForm">
+          <div class="field">
+            <label for="jdUrl">JD 連結</label>
+            <input id="jdUrl" type="url" placeholder="https://company.com/jobs/…" autocomplete="url" required />
+            <p class="hint">頁面會直接嘗試讀取職缺內容；成功後立即在右側完成分析。</p>
+          </div>
+          <button class="btn btn-primary" id="fetchBtn" type="submit" style="width:100%;margin-top:16px">讀取連結並分析</button>
+          <div class="link-mode" id="linkMode" role="alert"></div>
+          <div class="input-divider"><span>或</span></div>
+          <button class="fallback-toggle" id="fallbackToggle" type="button" aria-expanded="false" aria-controls="textFallback">改貼 JD 全文</button>
+          <div class="text-fallback" id="textFallback">
+            <div class="field">
+              <label for="jdText">JD 全文</label>
+              <textarea id="jdText" placeholder="貼上職稱、Responsibilities、Qualifications…" spellcheck="false"></textarea>
+            </div>
+            <div class="actions">
+              <button class="btn btn-primary" id="analyzeTextBtn" type="button">分析貼上的全文</button>
+              <button class="btn btn-secondary" type="button" id="sampleBtn">載入範例</button>
+            </div>
+          </div>
+          <div class="status" id="status" role="status" aria-live="polite"></div>
+        </form>
+      </aside>
+
+      <div class="results">
+        <section class="empty" id="emptyState">
+          <div class="empty-inner">
+            <svg viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M17 8h22l9 9v39H17z" stroke="currentColor" stroke-width="2.2"/><path d="M39 8v10h10M24 29h17M24 37h17M24 45h11" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+            <h2>先給我一份 JD</h2>
+            <p>分析會依職責生成 3–5 個 use case，不會用空泛的「提升效率」帶過。</p>
+          </div>
+        </section>
+
+        <section class="output" id="output" aria-live="polite">
+          <div class="output-head">
+            <div><h2 id="roleTitle">職位分析</h2><p id="resultMeta"></p></div>
+            <div class="output-actions"><button class="mini-btn" id="copyBtn" type="button">複製 Markdown</button><button class="mini-btn" id="downloadBtn" type="button">下載 .md</button></div>
+          </div>
+          <div class="assumptions" id="assumptions"></div>
+          <nav class="case-tabs" id="caseTabs" aria-label="Use case 切換"></nav>
+          <div id="caseContainer"></div>
+          <div class="summary">
+            <section><h3>優先序矩陣</h3><div class="matrix" id="matrix"></div></section>
+            <section><h3>導入路線圖</h3><div class="roadmap" id="roadmap"></div></section>
+          </div>
+          <details class="sources">
+            <summary>框架來源與適用邊界</summary>
+            <ul>
+              <li><a href="https://claude.com/blog/four-role-based-claude-certifications" target="_blank" rel="noopener">Anthropic：四張角色制 Claude 認證</a></li>
+              <li><a href="https://www.anthropic.com/engineering/building-effective-agents" target="_blank" rel="noopener">Building Effective Agents</a>：F1 Workflow vs Agent、F2 工作流模式</li>
+              <li><a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" target="_blank" rel="noopener">Effective Context Engineering</a>：注意力預算、漸進檢索與上下文管理</li>
+              <li><a href="https://www.anthropic.com/ai-fluency" target="_blank" rel="noopener">AI Fluency</a>：F42 Delegation / Description / Discernment / Diligence</li>
+              <li>此頁使用公開可驗證的框架摘要。登入牆後的課程內容未納入；生成結果是規劃草案，效益數字需由試點驗證。</li>
+            </ul>
+          </details>
+        </section>
+      </div>
+    </section>
+  </main>
+  <div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+  var sample = `Finance Business Partner\n\nResponsibilities:\n- Finance POC providing day-to-day operational support for local business teams and cross-functional partners around the globe; strategic partner to the business and finance leadership.\n- Carry out the financial planning process for key functions: develop near and long-term budget plans at the project-level, monitor budget implementation, carry out month-end close responsibilities, and update the forecast periodically by working closely with business teams.\n- Responsible for optimizing practices, policies, programs, and procedures; constantly improve finance processes by leading efforts to simplify and automate reporting wherever possible (e.g. self-serve dashboards for the business).\n- Partner with business units and provide insightful and quality financial advice to support company business decision-making; prepare management reporting and present variance analysis to senior leadership at a regular cadence.\n- Conduct ad-hoc projects/analyses, develop innovative reporting to track KPIs, and support industry analysis.\n\nQualifications:\n- 5+ years of Corporate Finance/FP&A experience.\n- Data analysis, financial modeling, Excel, PPT, G Suite; Tableau and Power BI a plus.`;
+
+  var templates = [
+    {id:'planning', keys:['budget','forecast','planning','plan','預算','預測','規劃','capacity'], title:'預算規劃與滾動預測工作流', mode:'Workflow · Prompt chaining', delegation:'Augmentation', pain:'版本分散、假設難追溯，彙整與對帳佔用大量專業時間；更新頻率一快，人工流程容易產生落差。', before:['各團隊以不同模板回報','人工彙整、對帳與追問','更新模型並重做說明','會議中才發現假設不一致'], after:['統一結構化輸入與版本標記','程式化檢核加總、缺值與異常波動','AI 生成差異說明草稿並附來源欄位','負責人核准假設後才更新正式版本'], frameworks:['F1/CCAR-F','F2/CCAR-F','F21/CCAR-F','F30/CCAR-F','F37/CCAR-P','F44/CCAO-F'], review:'所有會進入正式計畫或預測的數字先由責任人核准；按科目與資料來源校準錯誤率，低信心與來源衝突優先送審。', metrics:['彙整工時與週期時間','版本差異與退回率','預測誤差（依業務選 MAPE / variance）','來源可追溯率與未解例外數'], governance:'計算交給確定性程式，模型只處理分類與敘事；敏感財務資料採最小權限，保留輸入、來源與核准紀錄。', pros:['減少貼數字與追版本時間','讓專家把時間用在假設與決策','保留每次調整的來源脈絡'], cons:['前端報數品質差時仍會卡住','例外閾值設太緊會形成審核塞車','需先統一科目與指標定義'], rollout:['選一個範圍跑 1 個週期影子模式','逐筆比對人工版，修正檢核規則','通過數字零重大錯誤門檻後再擴大']},
+    {id:'reporting', keys:['report','variance','insight','analysis','分析','報告','management','dashboard','kpi','metric'], title:'管理報告與差異分析半自動化', mode:'Workflow · Evaluator–optimizer', delegation:'Augmentation', pain:'取數、算差異、寫 commentary 與排版反覆重做；報告品質仰賴個人經驗，新人常因口徑或論證不足被打回。', before:['人工從多個來源拉數','試算表計算差異','手寫 commentary 與簡報','主管逐段修正後定稿'], after:['權威來源取數並程式化計算','AI 依固定結構產生解釋草稿','驗證器逐一核對數字與來源','專家補上商業判斷並核准發布'], frameworks:['F1/CCAR-F','F2/CCAR-F','F21/CCAR-F','F31/CCAR-F','F37/CCAR-P','F44/CCAO-F'], review:'每個數字與因果敘述都需能回到來源；對管理層發布屬高成本情境，AI 永遠只產生初稿，最終觀點由職務負責人簽核。', metrics:['報告產出工時','數字與引用錯誤率','主管退回次數','按期交付率與閱讀者採用率'], governance:'來源與日期一併保留；無法驗證的推論標為假設，不得補造數字。固定敘事模板可快取，複雜推理再路由至較高能力模型。', pros:['固定例行報告更快完成','初稿結構與口徑更一致','讓人工聚焦在商業判斷'], cons:['敘事可能模板化','相關不等於因果，仍需人判斷','來源治理不良會放大錯誤'], rollout:['挑一份高頻報告做雙軌輸出','建立 claim–source 抽查清單','收集主管退回原因後調整模板']},
+    {id:'support', keys:['support','partner','stakeholder','poc','cross-functional','customer','service','協作','支援','諮詢','諮詢'], title:'自助查詢與例外需求分流', mode:'Workflow · Routing + RAG', delegation:'Automation + Augmentation', pain:'高頻重複問題持續打斷核心工作；需求描述與口徑不一，專家花時間澄清、找資料，再把相同答案重說一次。', before:['需求從郵件或聊天零散進件','專家澄清問題與資料口徑','人工查找文件或拉數','回覆後沒有沉澱成可重用知識'], after:['先以結構化表單辨識意圖','從核准知識庫檢索定義與來源','標準問題自助回答並附依據','模糊、例外或無實質進展時升級人工'], frameworks:['F1/CCAR-F','F2/CCAR-F','F28/CCAR-F','F31/CCAR-F','F38/CCAR-P','F42/CCAO-F'], review:'明確的人工作業要求、政策空白、多筆資料匹配或來源衝突立即升級；不要用模型自報信心取代已校準的準確率。', metrics:['重複請求量下降','首次回答正確率','人工升級率與解決時間','知識缺口新增與關閉速度'], governance:'只檢索經核准內容，答案需附定義、日期與來源；不同角色只看獲授權資料，政策例外不由模型自行決定。', pros:['減少專家被重複問題打斷','讓知識缺口可被量化','跨時區取得一致回答'], cons:['知識庫建置與維護是前置成本','口徑未統一時無法靠 RAG 解決','權限切分錯誤會造成資訊外洩'], rollout:['盤點最高頻 20 個問題與答案 owner','先在單一團隊封閉測試','依錯誤類型修索引、內容或路由']},
+    {id:'process', keys:['process','optimiz','automat','procedure','policy','close','operation','流程','自動化','營運','作業'], title:'例行流程自動化與例外管理', mode:'Workflow · Deterministic gates', delegation:'Automation', pain:'固定檢查清單靠人工追蹤，跨團隊等待與重複核對拖長週期；關鍵步驟若遺漏，事後才發現。', before:['用試算表或訊息追進度','人工核對每個前置條件','遇到異常再臨時找 owner','完成後難以還原決策紀錄'], after:['任務與 owner 由規則自動派發','前置條件用程式化 gate 驗證','只把異常與逾時項目送人工','結構化保存決策、證據與交接摘要'], frameworks:['F1/CCAR-F','F2/CCAR-F','F6/CCAR-F','F7/CCAR-F','F26/CCAR-F','F32/CCAR-P'], review:'不可逆或高成本動作必須在 checkpoint 暫停；規則要求的核准用程式化 gate 強制，不用自然語言 prompt 代替。', metrics:['端到端週期時間','逾時與重工件數','人工碰觸率','錯誤停止與恢復成功率'], governance:'把權限、核准與稽核證據做成系統控制；AI 不直接執行未授權動作。每個失敗需標記可否重試與人工 owner。', pros:['減少追進度與重複核對','例外處理更集中','關鍵控制可稽核'], cons:['跨系統整合成本較高','錯誤規則會系統性阻塞流程','流程變動時需同步更新 gate'], rollout:['先只做提醒、追蹤與影子檢核','跑兩個完整週期觀察誤報','再逐步開啟自動通過與系統整合']},
+    {id:'research', keys:['research','industry','market','strategy','innovative','ad-hoc','研究','市場','策略','競品'], title:'多來源研究與決策備忘 Agent', mode:'Agent · Orchestrator–workers', delegation:'Agency + Human review', pain:'研究路徑不可預測，資料分散且時效不同；人工複製整理費時，也容易在摘要後遺失原始出處與限制。', before:['手工搜尋多種來源','複製片段到零散筆記','人工去重與比對衝突','整理成備忘錄後再補引用'], after:['Coordinator 依問題動態拆研究子題','Workers 平行收集並回傳 claim–source 對照','合成器標註衝突、缺口與資料日期','專家逐條驗證後形成決策備忘'], frameworks:['F1/CCAR-F','F4/CCAR-F','F5/CCAR-F','F29/CCAR-F','F31/CCAR-F','F44/CCAO-F'], review:'任何供決策使用的數字與引用都要回到原始來源；來源缺失、衝突或政策不明時保留缺口，不讓 agent 自行補齊。', metrics:['研究交付時間','引用可開啟與內容一致率','重要主題覆蓋率','人工刪除或改寫比例'], governance:'外部內容視為不可信輸入，與系統指令隔離；研究 agent 不配置寫入或交易工具，採最小權限與完整 trace。', pros:['可平行探索不確定路徑','輸出保留 claim–source 映射','清楚呈現研究缺口'], cons:['成本與延遲高於固定 workflow','錯誤可能在多 agent 間傳播','公開資料不一定完整或及時'], rollout:['選一個邊界清楚的研究題做封閉試點','全量人工驗證並建立來源白名單','達到引用準確門檻後才常態化']},
+    {id:'content', keys:['content','marketing','campaign','communication','brand','write','writing','內容','行銷','品牌','文案','溝通'], title:'內容規劃、起草與品牌審核工作流', mode:'Workflow · Parallelization', delegation:'Augmentation', pain:'蒐集素材、起草多版本、核對品牌規範與法務要求互相等待；高頻內容容易犧牲一致性。', before:['人工整理 brief 與素材','單一路徑起草內容','品牌與法務輪流審查','來回修訂後重新排版'], after:['結構化 brief 與受眾/限制','平行產生版本並獨立檢查品牌與風險','Evaluator 依 rubric 排序與指出缺口','內容 owner 選擇、改寫並核准'], frameworks:['F2/CCAR-F','F19/CCAR-F','F20/CCAR-F','F23/CCAR-F','F32/CCAR-P','F42/CCAO-F'], review:'對外內容必須由 owner 核准；品牌與合規 rubric 各自獨立檢查，避免生成者自我審查的盲點。', metrics:['從 brief 到初稿時間','一次審核通過率','品牌/法務問題漏檢率','內容表現與人工改寫幅度'], governance:'未公開資訊與個資不得放入未核准系統；保留 AI 參與與人工核准紀錄，外部主張需附來源。', pros:['加快多版本探索','審核標準更一致','減少低價值格式工作'], cons:['創意可能趨同','rubric 不佳會放大錯誤偏好','最終語氣與判斷仍依賴人'], rollout:['以一種低風險內容做 A/B 影子試點','整理退回原因成 rubric','擴到更多格式前先做回歸評測']},
+    {id:'engineering', keys:['code','software','engineer','developer','api','architecture','system','程式','開發','工程','架構'], title:'工程任務規劃、實作與獨立審查', mode:'Workflow · Plan + independent review', delegation:'Augmentation', pain:'需求轉成實作時容易漏掉邊界案例；生成程式碼若由同一上下文自審，難以發現自己的錯誤。', before:['人工拆需求與探索程式碼','實作後才補測試','PR 審查混合風格與正確性問題','修正後反覆來回'], after:['Plan mode 先探索影響範圍','以測試與 schema 定義驗收條件','實作 agent 在受限工具集內修改','獨立 session 依 diff 與測試結果審查'], frameworks:['F9/CCAR-F','F15/CCAR-F','F16/CCAR-F','F17/CCAR-F','F23/CCAR-F','F32/CCAR-P'], review:'高風險模組、權限與資料遷移必須由資深工程師審查；生成與審查使用獨立實例，所有變更通過測試與安全 gate 才可合併。', metrics:['lead time 與一次通過率','測試覆蓋與回歸缺陷','PR 人工審查時間','成本、延遲與安全事件'], governance:'工具集依角色限縮，秘密不進 prompt 或版本庫；不可信 repo 內容隔離，寫入與部署權限分離。', pros:['減少探索與樣板程式時間','測試先行讓驗收更清楚','獨立審查降低自我確認偏誤'], cons:['複雜架構決策仍需人負責','錯誤測試會錯誤地放行','大型程式庫的 context 成本高'], rollout:['選低風險 repo 與單一任務類型','建立基準測試與人工審查紀錄','通過回歸 gate 後逐步擴大權限']}
+  ];
+
+  var state={cases:[],markdown:''};
+  var $=function(id){return document.getElementById(id)};
+  function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function toast(msg){var t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},1800)}
+  function extract(text){
+    var lines=text.split(/\n/).map(function(x){return x.trim()}).filter(Boolean);
+    var title=lines[0]||'未命名職位';
+    if(/responsibilit|職責|job description/i.test(title)) title='職位分析';
+    var resp=[],inResp=false;
+    lines.forEach(function(line){
+      if(/^(responsibilities|responsibility|職責|工作內容)\s*:?$/i.test(line)){inResp=true;return}
+      if(/^(qualifications|requirements|minimum qualifications|preferred qualifications|資格|條件)\s*:?$/i.test(line)){inResp=false;return}
+      if((inResp||/^[-•*]/.test(line)) && /^[-•*]/.test(line)) resp.push(line.replace(/^[-•*]\s*/,''));
+    });
+    if(!resp.length){resp=lines.slice(1).filter(function(l){return l.length>28}).slice(0,8)}
+    return {title:title.replace(/^job title\s*:\s*/i,''),responsibilities:resp};
+  }
+  function scoreTemplate(t,resp){
+    var s=0,all=resp.join(' ').toLowerCase();t.keys.forEach(function(k){if(all.indexOf(k.toLowerCase())>-1)s++});return s;
+  }
+  function pickCases(resp){
+    var ranked=templates.map(function(t){return {t:t,score:scoreTemplate(t,resp)}}).sort(function(a,b){return b.score-a.score});
+    var picked=ranked.filter(function(x){return x.score>0}).slice(0,5).map(function(x){return x.t});
+    if(picked.length<3){['process','reporting','support'].forEach(function(id){var t=templates.find(function(x){return x.id===id});if(picked.indexOf(t)<0&&picked.length<3)picked.push(t)})}
+    return picked;
+  }
+  function bestResponsibility(t,resp){
+    var best=resp[0]||'JD 未提供可辨識的條列職責';var bestScore=-1;
+    resp.forEach(function(r){var lower=r.toLowerCase(),s=0;t.keys.forEach(function(k){if(lower.indexOf(k.toLowerCase())>-1)s++});if(s>bestScore){bestScore=s;best=r}});return best;
+  }
+  function list(items,cls){return '<ul class="check-list '+(cls||'')+'">'+items.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>'}
+  function renderCase(t,i,resp){
+    var q=bestResponsibility(t,resp);
+    return '<article class="case '+(i===0?'active':'')+'" id="case-'+i+'" role="tabpanel">'+
+      '<header class="case-hero"><div><div class="case-index">UC-'+(i+1)+'</div><h3>'+esc(t.title)+'</h3><p class="quote">對應職責：「'+esc(q)+'」</p></div><div class="mode"><strong>'+esc(t.mode)+'</strong><span>Delegation：'+esc(t.delegation)+'</span></div></header>'+
+      '<div class="case-body">'+
+      '<section class="section"><h4>過去痛點</h4><p>'+esc(t.pain)+'</p></section>'+
+      '<section class="section"><h4>Before → After</h4><div class="flow"><div class="flow-block"><strong>現在</strong><ol>'+t.before.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ol></div><div class="flow-arrow">→</div><div class="flow-block"><strong>導入後</strong><ol>'+t.after.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ol></div></div></section>'+
+      '<section class="section"><h4>框架選擇</h4><div class="tag-row">'+t.frameworks.map(function(x){return '<span class="tag">'+esc(x)+'</span>'}).join('')+'</div><p style="margin-top:12px;font-size:.9rem">'+(t.mode.indexOf('Agent')===0?'任務路徑無法預先確定，需要模型動態拆解與工具選擇，因此採 Agent；同時保留停止條件、來源映射與人工 checkpoint。':'路徑固定且可預測，因此用程式碼編排的 Workflow，而不是讓模型自由決定所有步驟。')+'</p></section>'+
+      '<section class="section split"><div><h4>人工把關</h4><p>'+esc(t.review)+'</p></div><div><h4>成本與治理</h4><p>'+esc(t.governance)+'</p></div></section>'+
+      '<section class="section split"><div><h4>評估指標</h4>'+list(t.metrics)+'</div><div><h4>導入步驟</h4>'+list(t.rollout)+'</div></section>'+
+      '<section class="section split"><div><h4>優點</h4>'+list(t.pros,'pros')+'</div><div><h4>限制與風險</h4>'+list(t.cons,'cons')+'</div></section>'+
+      '</div></article>';
+  }
+  function buildMarkdown(title,cases,resp,url){
+    var out=['# '+title+'：AI User Case 規劃','',url?'來源：'+url:'','> 假設：JD 未列出的系統、團隊規模、資料權限與 SLA 皆待 discovery 確認；所有效益數字需經試點驗證。',''];
+    cases.forEach(function(t,i){out.push('## UC-'+(i+1)+'｜'+t.title,'','**對應 JD 職責**：'+bestResponsibility(t,resp),'','**過去痛點**：'+t.pain,'','**模式**：'+t.mode+'；'+t.delegation,'','**框架**：'+t.frameworks.join('、'),'','### Before','- '+t.before.join('\n- '),'','### After','- '+t.after.join('\n- '),'','**人工把關**：'+t.review,'','**評估指標**：'+t.metrics.join('、'),'','**成本與治理**：'+t.governance,'','**優點**：'+t.pros.join('；'),'','**限制與風險**：'+t.cons.join('；'),'','**導入步驟**：','1. '+t.rollout.join('\n2. '),'');});
+    out.push('## 導入路線圖','','- 第 1 週：Discovery，確認流程 owner、權威資料源、基準工時與風險邊界。','- 第 2–3 週：第一個 use case 影子模式，與人工版逐筆比對。','- 第 4 週：用 accuracy、latency、cost、safety、security 做 go / no-go。','- 季度：只放大通過 gate 的流程；維持分層抽查、trace 與回歸評測。');return out.filter(function(x,i){return !(x===''&&i===2&&!url)}).join('\n');
+  }
+  function setFallback(open){
+    $('textFallback').classList.toggle('show',open);
+    $('fallbackToggle').setAttribute('aria-expanded',open?'true':'false');
+    $('fallbackToggle').textContent=open?'收起全文輸入':'改貼 JD 全文';
+  }
+  function htmlToText(html){
+    var inert=new DOMParser().parseFromString(String(html||''),'text/html');
+    return (inert.body.textContent||'').replace(/\u00a0/g,' ').replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
+  }
+  function findJobPosting(value){
+    if(!value)return null;
+    if(Array.isArray(value)){for(var i=0;i<value.length;i++){var found=findJobPosting(value[i]);if(found)return found}return null}
+    if(typeof value!=='object')return null;
+    var type=value['@type'];
+    if(type==='JobPosting'||(Array.isArray(type)&&type.indexOf('JobPosting')>-1))return value;
+    if(value['@graph'])return findJobPosting(value['@graph']);
+    return null;
+  }
+  function extractFetchedJD(html){
+    var doc=new DOMParser().parseFromString(html,'text/html');
+    var scripts=doc.querySelectorAll('script[type="application/ld+json"]');
+    for(var i=0;i<scripts.length;i++){
+      try{
+        var job=findJobPosting(JSON.parse(scripts[i].textContent));
+        if(job){
+          var parts=[];
+          if(job.title)parts.push(htmlToText(job.title));
+          if(job.description)parts.push('Responsibilities / Job description:\n'+htmlToText(job.description));
+          if(job.responsibilities)parts.push('Responsibilities:\n'+htmlToText(job.responsibilities));
+          if(job.qualifications)parts.push('Qualifications:\n'+htmlToText(job.qualifications));
+          var structured=parts.filter(Boolean).join('\n\n');
+          if(structured.length>180)return structured;
+        }
+      }catch(ignore){}
+    }
+    var title=(doc.querySelector('h1')&&doc.querySelector('h1').textContent||doc.title||'').trim();
+    doc.querySelectorAll('script,style,noscript,svg,form,nav,header,footer').forEach(function(node){node.remove()});
+    var root=doc.querySelector('[class*="job-description" i],[id*="job-description" i],[class*="jobDescription"],main,article')||doc.body;
+    var blocks=root?Array.from(root.querySelectorAll('h1,h2,h3,h4,p,li')).map(function(node){return (node.textContent||'').replace(/\s+/g,' ').trim()}).filter(Boolean):[];
+    var text=(blocks.length?blocks.join('\n'):root&&root.textContent?root.textContent:'').replace(/\u00a0/g,' ').replace(/[ \t]+/g,' ').replace(/\n\s*\n\s*\n/g,'\n\n').trim();
+    if(title&&text.indexOf(title)!==0)text=title+'\n\n'+text;
+    return text;
+  }
+  function fetchFailure(message){
+    $('linkMode').innerHTML='<strong>無法從連結讀取 JD</strong>'+esc(message)+' 請改貼職缺全文，貼上後可用同一套框架直接分析。';
+    $('linkMode').classList.add('show');
+    $('status').textContent='';$('status').classList.remove('success');
+    setFallback(true);
+    setTimeout(function(){$('jdText').focus()},0);
+  }
+  async function fetchAndAnalyze(){
+    var btn=$('fetchBtn');
+    if(btn.disabled)return;
+    var raw=$('jdUrl').value.trim(),url;
+    try{url=new URL(raw)}catch(e){fetchFailure('連結格式無法辨識。');return}
+    if(url.protocol!=='https:'&&url.protocol!=='http:'){fetchFailure('只支援 http 或 https 連結。');return}
+    var controller=new AbortController(),timer=setTimeout(function(){controller.abort()},15000);
+    btn.disabled=true;btn.textContent='正在讀取職缺…';
+    $('status').classList.remove('success');$('status').textContent='正在連線並解析頁面內容';$('linkMode').classList.remove('show');
+    try{
+      var response=await fetch(url.href,{method:'GET',mode:'cors',credentials:'omit',redirect:'follow',headers:{Accept:'text/html,application/xhtml+xml'},signal:controller.signal});
+      if(!response.ok)throw {kind:'http',status:response.status};
+      var html=await response.text(),text=extractFetchedJD(html);
+      if(text.length<180)throw {kind:'empty'};
+      $('jdText').value=text;
+      render('已從連結讀取並解析職缺內容');
+    }catch(error){
+      if(error&&error.name==='AbortError')fetchFailure('讀取超過 15 秒，網站沒有在時限內回應。');
+      else if(error&&error.kind==='http')fetchFailure('網站回傳 HTTP '+error.status+'，拒絕或無法提供這個頁面。');
+      else if(error&&error.kind==='empty')fetchFailure('頁面有回應，但內容是空白、登入頁或 JavaScript 外殼，找不到足夠的職缺文字。');
+      else fetchFailure('該網站未允許跨站讀取，或瀏覽器無法連上它（常見原因是 CORS 或防爬限制）。');
+    }finally{clearTimeout(timer);btn.disabled=false;btn.textContent='讀取連結並分析'}
+  }
+  function render(successMessage){
+    var text=$('jdText').value.trim(),url=$('jdUrl').value.trim();
+    if(!text){
+      $('status').classList.remove('success');$('status').textContent='請先貼上 JD 全文。';return;
+    }
+    var parsed=extract(text),cases=pickCases(parsed.responsibilities);state.cases=cases;
+    $('roleTitle').textContent=parsed.title+'｜AI 導入藍圖';
+    $('resultMeta').textContent='從 '+parsed.responsibilities.length+' 條可辨識職責，生成 '+cases.length+' 個 use case';
+    $('assumptions').textContent='待確認假設：JD 未列出的系統、團隊規模、資料權限與 SLA，需在 discovery 階段補齊。以下成效皆是驗證方向，不是已實現數字。';
+    $('caseTabs').innerHTML=cases.map(function(t,i){return '<button class="case-tab" type="button" role="tab" data-i="'+i+'" aria-selected="'+(i===0?'true':'false')+'">UC-'+(i+1)+' '+esc(t.title)+'</button>'}).join('');
+    $('caseContainer').innerHTML=cases.map(function(t,i){return renderCase(t,i,parsed.responsibilities)}).join('');
+    var hi=cases.slice(0,2).map(function(t,i){return 'UC-'+(i+1)+' '+t.title.replace(/工作流|半自動化|與例外管理/g,'')}).join('<br>');
+    var mid=cases.slice(2).map(function(t,i){return 'UC-'+(i+3)+' '+t.title.replace(/工作流|半自動化|與例外管理/g,'')}).join('<br>')||'—';
+    $('matrix').innerHTML='<div class="axis"></div><div class="axis">高可行性</div><div class="axis">較低可行性</div><div class="axis">高影響</div><div>'+hi+'</div><div>'+(cases.find(function(t){return t.id==='engineering'||t.id==='research'})?'需整合或來源治理':'待 discovery')+'</div><div class="axis">中影響</div><div>'+mid+'</div><div>後續評估</div>';
+    $('roadmap').innerHTML='<div class="phase"><strong>第 1 週</strong><span>確認 owner、權威資料源、基準工時與風險邊界。</span></div><div class="phase"><strong>第 2–3 週</strong><span>第一順位 case 跑影子模式，與人工版逐筆比對。</span></div><div class="phase"><strong>第 4 週</strong><span>依 accuracy、latency、cost、safety、security 做 go / no-go。</span></div><div class="phase"><strong>季度</strong><span>只放大通過 gate 的流程；持續分層抽查與回歸評測。</span></div>';
+    state.markdown=buildMarkdown(parsed.title,cases,parsed.responsibilities,url);
+    $('emptyState').style.display='none';$('output').classList.add('show');$('linkMode').classList.remove('show');
+    $('status').textContent=successMessage||'分析完成';$('status').classList.add('success');
+    document.querySelectorAll('.case-tab').forEach(function(btn){btn.addEventListener('click',function(){var n=Number(btn.dataset.i);document.querySelectorAll('.case-tab').forEach(function(b){b.setAttribute('aria-selected','false')});document.querySelectorAll('.case').forEach(function(c){c.classList.remove('active')});btn.setAttribute('aria-selected','true');$('case-'+n).classList.add('active')})});
+    if(window.innerWidth<901) $('output').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  $('jdForm').addEventListener('submit',function(e){e.preventDefault();fetchAndAnalyze()});
+  $('fallbackToggle').addEventListener('click',function(){setFallback(!$('textFallback').classList.contains('show'))});
+  $('analyzeTextBtn').addEventListener('click',function(){render()});
+  $('sampleBtn').addEventListener('click',function(){$('jdText').value=sample;$('jdUrl').value='';setFallback(true);render('已載入範例並完成分析')});
+  $('copyBtn').addEventListener('click',function(){navigator.clipboard.writeText(state.markdown).then(function(){toast('Markdown 已複製')}).catch(function(){toast('無法存取剪貼簿')})});
+  $('downloadBtn').addEventListener('click',function(){if(!state.markdown)return;var blob=new Blob([state.markdown],{type:'text/markdown;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='jd-ai-user-cases.md';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)});
+  $('jdUrl').addEventListener('input',function(){$('linkMode').classList.remove('show');$('status').textContent='';$('status').classList.remove('success')});
+  $('jdUrl').addEventListener('paste',function(){setTimeout(function(){var value=$('jdUrl').value.trim();try{var parsed=new URL(value);if(parsed.protocol==='https:'||parsed.protocol==='http:')fetchAndAnalyze()}catch(ignore){}},0)});
+})();
+</script>
+</body>
+</html>
