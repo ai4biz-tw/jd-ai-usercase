@@ -1,6 +1,16 @@
-# JD AI User Case 規劃工具
+# JD AI User Case 與 JD2MD
 
-貼上 JD 連結或全文，自動產出 AI 導入 user case 分析。
+兩個靜態頁，都不用後端，開檔或放到 GitHub Pages 就能用。
+
+## JD2MD 簡單版
+
+開 `jd2md.html`。貼上職缺全文，或試著讀一個連結；若網站擋住跨站讀取，改貼全文。頁面會把相關職責收成 1–6 份工作模組 Markdown，對不上的留在「仍然需要你本人」。可逐份複製、整包複製，或下載 `.md`、`.zip`。
+
+這是簡單版：在瀏覽器裡用職責句型歸併，不呼叫模型，也不發官號。產品決定見 `docs/jd2md-proposal.md`。
+
+## JD AI User Case 規劃工具
+
+貼上 JD 連結或全文，自動產出 AI 導入 user case 分析。這不是 JD2MD。
 
 ## 用法
 
