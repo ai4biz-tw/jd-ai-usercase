@@ -1,0 +1,47 @@
+name: Auto-merge
+
+# workflow_run always uses the workflow on the default branch. Checkout that
+# branch and do not run code from the pull request.
+on:
+  workflow_run:
+    workflows: ["CI", "PR policy"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: auto-merge-${{ github.event.workflow_run.head_sha }}
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    name: auto-merge
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      checks: read
+      actions: write
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Squash-merge when gates pass
+        env:
+          MODE: merge
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          PR_NUMBERS: ${{ join(github.event.workflow_run.pull_requests.*.number, ',') }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: node scripts/auto-merge.mjs

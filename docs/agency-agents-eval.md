@@ -1,7 +1,7 @@
 # agency-agents 導入評估
 
 > 對應 ai4biz-tw/jd-ai-usercase#4。2026-10-14 Opus-5.5 撰寫。
-> 資料來源：GitHub API 與 repo 本體（https://github.com/msitarzewski/agency-agents ，2026-10-14 clone 的 main），數字皆為當天實測。
+> 資料來源：GitHub API 與 repo 本體（[msitarzewski/agency-agents](https://github.com/msitarzewski/agency-agents)，2026-10-14 clone 的 main），數字皆為當天實測。
 
 ## 結論（先講）
 
