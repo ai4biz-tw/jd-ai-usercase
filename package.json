@@ -1,0 +1,20 @@
+{
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "lint:html": "node scripts/validate-static.mjs",
+    "lint:md": "markdownlint-cli2",
+    "test": "node --test scripts/policy.test.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "secrets": "node scripts/scan-secrets.mjs"
+  },
+  "devDependencies": {
+    "html-validate": "^10.17.0",
+    "markdownlint-cli2": "^0.17.2",
+    "playwright": "^1.65.1",
+    "stylelint": "^16.26.1"
+  }
+}
