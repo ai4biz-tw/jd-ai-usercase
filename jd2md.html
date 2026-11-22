@@ -157,6 +157,13 @@
               <span class="count" id="count">0 / 12000</span>
             </div>
           </div>
+          <div class="field">
+            <label for="outLang">產出語言</label>
+            <select id="outLang">
+              <option value="en" selected>English</option>
+              <option value="zh">繁體中文</option>
+            </select>
+          </div>
           <div class="actions">
             <button class="btn btn-primary" id="runBtn" type="submit">收成工作模組</button>
           </div>
@@ -228,10 +235,15 @@
       if (level === 'HUMAN-LEAD') return 'human';
       return 'aug';
     }
+    var UI = {
+      zh: { what: '這個模組在做什麼', level: '可取代程度', inputs: '輸入', inputsNote: '下面是這類工作通常要準備的東西，JD 沒寫到的不當作事實。', steps: '步驟', deliver: '交付物與驗收', risks: '風險與人工把關', drop: '若引用的原文其實不是這件事，拿掉這份。', prompt: '給 AI 的指令（可直接貼）', promptNote: '把「（貼在這裡）」換成你的材料，整段貼給 ChatGPT、Claude 或 Gemini。', copyPrompt: '複製指令', copied: '指令已複製，貼給 AI 就能用', moduleN: '模組', human: '仍然需要你本人', humanNote: '這些職責沒有單獨的產出，或這版的句型對不上。不硬做成模組。', humanList: '沒有收成模組的原文', humanTag: '留給你本人', none: '沒有收成模組', meta: function (m, h) { return '收成 ' + m + ' 個模組，' + h + ' 條留給你本人'; }, note: '草稿，未經模型改寫。每一份都引用 JD 原文；輸入清單是這類工作的建議，不是從 JD 推斷的事實。', AUTO: '可直接交', 'HUMAN-LEAD': '人主導', AUG: '人機一起做', end: '。' },
+      en: { what: 'What this module does', level: 'How much AI can take', inputs: 'Inputs', inputsNote: 'What this kind of work usually needs. Anything the job description does not say is not treated as fact.', steps: 'Steps', deliver: 'Deliverable and acceptance', risks: 'Risks and human checks', drop: 'If the quoted line is not really this task, drop this module.', prompt: 'Prompt for your AI (paste as is)', promptNote: 'Replace each "(paste here)" with your material and paste the whole thing into ChatGPT, Claude or Gemini.', copyPrompt: 'Copy prompt', copied: 'Prompt copied. Paste it into your AI.', moduleN: 'Module', human: 'Still needs you', humanNote: 'These duties have no standalone output, or this version’s phrasing does not match. They are not forced into modules.', humanList: 'Lines that did not become modules', humanTag: 'Left with you', none: 'No modules', meta: function (m, h) { return m + ' module' + (m === 1 ? '' : 's') + ', ' + h + ' line' + (h === 1 ? '' : 's') + ' left with you'; }, note: 'Draft, not rewritten by a model. Each module quotes the job description; the input list is a suggestion for this kind of work, not a fact taken from the job description.', AUTO: 'Hand off', 'HUMAN-LEAD': 'Human-led', AUG: 'Human + AI', end: '. ' }
+    };
+    function ui() {
+      return UI[(state.result && state.result.lang) === 'en' ? 'en' : 'zh'];
+    }
     function levelName(level) {
-      if (level === 'AUTO') return '可直接交';
-      if (level === 'HUMAN-LEAD') return '人主導';
-      return '人機一起做';
+      return ui()[level] || ui().AUG;
     }
     function whoClass(who) {
       if (who === 'AI 做') return 'ai';
@@ -250,28 +262,31 @@
       });
       if (result.human.length) {
         var humanFile = result.files[result.files.length - 1];
-        list.push({ id: 'human', label: '仍然需要你本人', markdown: humanFile.markdown, human: result.human });
+        list.push({ id: 'human', label: ui().human, markdown: humanFile.markdown, human: result.human });
       }
       return list;
     }
     function renderModule(item, index, total) {
+      var t = ui();
+      var lead = JD2MD.summaryLine(item);
       var steps = item.steps.map(function (step) {
-        return '<li><span class="who ' + whoClass(step[0]) + '">' + esc(step[0]) + '</span><span>' + esc(step[1]) + '</span></li>';
+        return '<li><span class="who ' + whoClass(step[0]) + '">' + esc(JD2MD.whoLabel(step[0], item.lang)) + '</span><span>' + esc(step[1]) + '</span></li>';
       }).join('');
-      return '<header class="case-hero"><div><div class="case-index">模組 ' + (index + 1) + ' / ' + total + '</div><h3>' + esc(item.name) + '</h3><p>' + esc(item.trigger) + '時，交出' + esc(item.output) + '。</p></div><div class="level ' + levelClass(item.level) + '">' + esc(item.level) + '<span>' + esc(levelName(item.level)) + '</span></div></header>' +
+      return '<header class="case-hero"><div><div class="case-index">' + t.moduleN + ' ' + (index + 1) + ' / ' + total + '</div><h3>' + esc(item.name) + '</h3><p>' + esc(lead) + '</p></div><div class="level ' + levelClass(item.level) + '">' + esc(item.level) + '<span>' + esc(levelName(item.level)) + '</span></div></header>' +
         '<div class="case-body">' +
-        '<section class="section"><h4>這個模組在做什麼</h4><p>' + esc(item.trigger) + '時，交出' + esc(item.output) + '。</p><ul class="quotes">' + item.bullets.map(function (bullet) { return '<li>' + esc(bullet) + '</li>'; }).join('') + '</ul></section>' +
-        '<section class="section"><h4>可取代程度</h4><p>' + esc(item.level) + '。' + esc(item.levelWhy) + '</p></section>' +
-        '<section class="section"><h4>輸入</h4><p>下面是這類工作通常要準備的東西，JD 沒寫到的不當作事實。</p><ul class="plain">' + item.inputs.map(function (line) { return '<li>' + esc(line) + '</li>'; }).join('') + '</ul></section>' +
-        '<section class="section"><h4>步驟</h4><ol class="steps">' + steps + '</ol></section>' +
-        '<section class="section"><h4>交付物與驗收</h4><p>' + esc(item.accept) + '</p></section>' +
-        '<section class="section"><h4>風險與人工把關</h4><ul class="plain">' + item.risks.map(function (line) { return '<li>' + esc(line) + '</li>'; }).join('') + '<li>若引用的原文其實不是這件事，拿掉這份。</li></ul></section>' +
-        '<section class="section"><h4>給 AI 的指令（可直接貼）</h4><pre class="md-view" style="margin:0">' + esc(item.prompt) + '</pre></section>' +
+        '<section class="section"><h4>' + t.what + '</h4><p>' + esc(lead) + '</p><ul class="quotes">' + item.bullets.map(function (bullet) { return '<li>' + esc(bullet) + '</li>'; }).join('') + '</ul></section>' +
+        '<section class="section"><h4>' + t.level + '</h4><p>' + esc(item.level) + t.end + esc(item.levelWhy) + '</p></section>' +
+        '<section class="section"><h4>' + t.inputs + '</h4><p>' + t.inputsNote + '</p><ul class="plain">' + item.inputs.map(function (line) { return '<li>' + esc(line) + '</li>'; }).join('') + '</ul></section>' +
+        '<section class="section"><h4>' + t.steps + '</h4><ol class="steps">' + steps + '</ol></section>' +
+        '<section class="section"><h4>' + t.deliver + '</h4><p>' + esc(item.accept) + '</p></section>' +
+        '<section class="section"><h4>' + t.risks + '</h4><ul class="plain">' + item.risks.map(function (line) { return '<li>' + esc(line) + '</li>'; }).join('') + '<li>' + t.drop + '</li></ul></section>' +
+        '<section class="section"><h4>' + t.prompt + '</h4><p>' + esc(t.promptNote) + '<button class="mini-btn" id="copyPromptBtn" type="button" style="margin-left:8px">' + t.copyPrompt + '</button></p><pre class="md-view" style="margin:0">' + esc(item.prompt) + '</pre></section>' +
         '</div>';
     }
     function renderHuman(items) {
-      return '<header class="case-hero"><div><div class="case-index">留給你本人</div><h3>仍然需要你本人</h3><p>這些職責沒有單獨的產出，或這版的句型對不上。不硬做成模組。</p></div></header>' +
-        '<div class="case-body"><section class="section"><h4>沒有收成模組的原文</h4><ul class="quotes">' +
+      var t = ui();
+      return '<header class="case-hero"><div><div class="case-index">' + t.humanTag + '</div><h3>' + t.human + '</h3><p>' + esc(t.humanNote) + '</p></div></header>' +
+        '<div class="case-body"><section class="section"><h4>' + t.humanList + '</h4><ul class="quotes">' +
         items.map(function (item) { return '<li>' + esc(item.text) + '<div class="hint">' + esc(item.reason) + '</div></li>'; }).join('') +
         '</ul></section></div>';
     }
@@ -281,7 +296,7 @@
       var list = views(result);
       if (!list.length) {
         $('caseTabs').innerHTML = '';
-        $('caseView').innerHTML = '<header class="case-hero"><div><h3>沒有收成模組</h3><p>' + esc(result.error) + '</p></div></header>';
+        $('caseView').innerHTML = '<header class="case-hero"><div><h3>' + ui().none + '</h3><p>' + esc(result.error) + '</p></div></header>';
         $('mdView').textContent = result.markdown || '';
         return;
       }
@@ -292,6 +307,11 @@
       var current = list[state.active];
       $('caseView').innerHTML = current.module ? renderModule(current.module, state.active, result.modules.length) : renderHuman(current.human);
       $('mdView').textContent = current.markdown;
+      if ($('copyPromptBtn')) {
+        $('copyPromptBtn').addEventListener('click', function () {
+          copyText(current.module.prompt, ui().copied);
+        });
+      }
       Array.prototype.forEach.call(document.querySelectorAll('.case-tab'), function (btn) {
         btn.addEventListener('click', function () {
           state.active = Number(btn.getAttribute('data-i'));
@@ -301,7 +321,7 @@
     }
     function render(message) {
       var text = $('jdText').value;
-      var result = JD2MD.convert(text, { source: $('jdUrl').value.trim() });
+      var result = JD2MD.convert(text, { source: $('jdUrl').value.trim(), lang: $('outLang').value });
       if (!result.ok) {
         $('status').classList.remove('success');
         $('status').textContent = result.error;
@@ -310,10 +330,8 @@
       state.result = result;
       state.active = 0;
       $('roleTitle').textContent = result.title;
-      $('resultMeta').textContent = '收成 ' + result.modules.length + ' 個模組，' + result.human.length + ' 條留給你本人';
-      $('assumptions').textContent = result.modules.length
-        ? '草稿，未經模型改寫。每一份都引用 JD 原文；輸入清單是這類工作的建議，不是從 JD 推斷的事實。'
-        : result.error;
+      $('resultMeta').textContent = ui().meta(result.modules.length, result.human.length);
+      $('assumptions').textContent = result.modules.length ? ui().note : result.error;
       $('emptyState').style.display = 'none';
       $('output').classList.add('show');
       $('linkMode').classList.remove('show');
@@ -445,6 +463,9 @@
         updateCount();
         render('已載入' + found.label + '範例');
       });
+    });
+    $('outLang').addEventListener('change', function () {
+      if (state.result) render();
     });
     $('copyOneBtn').addEventListener('click', function () {
       if (!state.result) return;

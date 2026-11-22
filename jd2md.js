@@ -18,7 +18,7 @@
     { id: 'it', title: /it support|it technician|it engineer|desktop support|service desk|data cent(er|re) (technician|engineer|operations)|資訊人員|\bmis\b|網管/i, re: /故障排除|報修|資訊設備|help ?desk|break.?fix|cabling|technical support/i },
     { id: 'finance', title: /financ|accountant|accounting|財務|會計|fp&a|controller|treasury|\btax\b|internal audit|auditor\b|出納|payable|receivable/i, re: /財務|會計|預算|fp&a|月結|帳務|資金|財報|month-end|general ledger|journal entr|reconciliation/i },
     { id: 'data', title: /data analyst|business intelligence|\bbi\b|analytics|business analyst|data scientist|資料分析|數據分析|商業分析/i, re: /資料分析|數據分析|儀表板|\bsql\b|dashboards?|data (pipeline|warehouse|model)/i },
-    { id: 'hr', title: /recruit|candidate experience|talent acquisition|human resources|\bhr\b|people (ops|partner|operations)|人資|招募|薪酬|payroll/i, re: /人資|招募|薪資|面試|任用|recruiting|candidates|payroll/i },
+    { id: 'hr', title: /recruit|candidate experience|talent acquisition|human resources|\bhr\b|\bhrbp\b|\bhrp\b|\bpxt\b|people (ops|partner|operations)|employee relations|\ber investigator|labou?r relations|compensation|staffing manager|人資|招募|薪酬|payroll/i, re: /人資|招募|薪資|面試|任用|recruiting|candidates|payroll/i },
     { id: 'product', title: /product (manager|mgr)|program (manager|mgr)|project (manager|mgr)|product owner|產品經理|專案經理|\bpm\b|\btpm\b|\bpmt\b|專案管理/i, re: /產品規劃|需求文件|專案進度|roadmap|\bprds?\b|user stories|project plans?/i },
     { id: 'content', title: /marketing|content|copywrit|social media|\bbrand|行銷|文案|社群|編輯|小編|communications|editor/i, re: /文案|行銷|社群|品牌|內容規劃|內容日曆|行銷企劃|copywriting|content calendar|social media/i },
     { id: 'sales', title: /account executive|\bsales\b|business development|業務|銷售|account manager/i, re: /業務|銷售|報價|客戶開發|訂單|收款|展會|業績|account executive|sales rep|\bquota\b|prospect/i },
@@ -209,7 +209,7 @@
       ],
       accept: '草稿裡的每個數值都來自身邊的紀錄；沒量到的項目保持空白。',
       risks: ['AI 補上沒有量過的生命徵象', '用草稿取代護理師的判斷'],
-      patterns: [/護理評估/, /生命徵象/, /量測/, /入院評估/, /身體評估/, /評估病/]
+      patterns: [/護理評估/, /生命徵象/, /量測/, /入院評估/, /身體評估/, /評估病/, /(nursing|patient|physical|admission) assessments?/i, /vital signs/i, /assess\w* .{0,30}patients?/i, /monitor\w* .{0,30}(patients?|condition)/i]
     }),
     mod({
       id: 'care-meds',
@@ -227,7 +227,7 @@
       ],
       accept: '清單沒有出現醫囑上沒有的藥；劑量沒有被改寫。',
       risks: ['把整理清單誤解成可以給藥', '漏掉尚未執行的醫囑卻顯示為完成'],
-      patterns: [/給藥/, /用藥/, /治療處置/, /處置/, /注射/, /換藥/, /醫囑/]
+      patterns: [/給藥/, /用藥/, /治療處置/, /處置/, /注射/, /換藥/, /醫囑/, /administer\w* .{0,30}(medications?|drugs|treatments?)/i, /medications?/i, /wound care/i, /(physician|doctor)\W?s? orders/i, /ivs?|injections?/i]
     }),
     mod({
       id: 'care-chart',
@@ -245,7 +245,7 @@
       ],
       accept: '草稿沒有加入沒發生的處置；時間與對象跟來源一致。',
       risks: ['為了完整而補寫沒有做的照護'],
-      patterns: [/病歷/, /護理紀錄/, /護理記錄/, /記錄於/, /紀錄於/]
+      patterns: [/病歷/, /護理紀錄/, /護理記錄/, /記錄於/, /紀錄於/, /document\w* .{0,40}(care|patient|chart|record)/i, /charting/i, /medical records?/i, /ehr|emr/i]
     }),
     mod({
       id: 'care-handover',
@@ -263,7 +263,7 @@
       ],
       accept: '草稿裡的每一筆都能對回本班紀錄；不在來源裡的病人沒有被寫進去。',
       risks: ['把尚未確認的異常寫成已通報'],
-      patterns: [/交班/, /通報/, /異常/]
+      patterns: [/交班/, /通報/, /異常/, /hand ?over|handoff|shift (report|change)/i, /report\w* .{0,30}(changes|incidents?|abnormal)/i, /escalat\w* .{0,30}(physician|doctor|concerns)/i]
     }),
     mod({
       id: 'care-edu',
@@ -281,7 +281,7 @@
       ],
       accept: '草稿沒有超出已給的衛教單；不能確定的句子被標出來。',
       risks: ['寫進這個病人不適用的注意事項'],
-      patterns: [/衛教/]
+      patterns: [/衛教/, /(patient|family) education/i, /educat\w* .{0,30}(patients?|families)/i, /discharge (teaching|instructions)/i]
     }),
     mod({
       id: 'eng-build',
@@ -824,6 +824,101 @@
       patterns: [/safety training/i, /training (programs?|sessions?|materials?|and certification)/i, /toolbox/i, /health and safety programs?/i, /regulatory requirements?/i, /\bosha\b/i, /教育訓練|安全宣導|安全衛生|法規要求/]
     }),
     mod({
+      id: 'hr-er',
+      name: '員工關係與職場調查',
+      families: ['hr'],
+      level: 'HUMAN-LEAD',
+      levelWhy: '調查與懲處牽涉到人的工作與法律責任，由人主導；AI 只整理紀錄與時間線。',
+      trigger: '員工提出申訴、衝突升高，或有違規要調查',
+      output: '調查時間線、待問問題清單與案件摘要草稿',
+      inputs: ['申訴或通報的原文', '適用的工作規則與政策', '已經收集到的訪談筆記與文件'],
+      steps: [
+        ['AI 做', '把事件排成時間線，列出還缺的事實與要問的問題'],
+        ['人做', '訪談當事人與證人、收集證據'],
+        ['AI 做', '把訪談與證據寫成案件摘要，分開「誰說了什麼」與「有證據支持的事」'],
+        ['人核准', '調查結論與處置']
+      ],
+      accept: '摘要裡每一句都標得出來源；結論欄在人判定前保持空白。',
+      risks: ['把指控寫成已確認的事實', '個資或案情外流給不相干的人'],
+      patterns: [/employee relations/i, /investigat/i, /grievance/i, /disciplinary/i, /\bconflicts?\b/i, /complaints?/i, /labou?r relations/i, /policy (violations?|breach)/i, /員工關係|申訴|職場調查|懲處|勞資|違規/]
+    }),
+    mod({
+      id: 'hr-coach',
+      name: '主管諮詢與績效管理',
+      families: ['hr'],
+      level: 'AUG',
+      levelWhy: '談話重點與文件可以起草；回饋內容與績效決定由人做。',
+      trigger: '主管來問怎麼帶人、到了考核期，或有人表現不如預期',
+      output: '給主管的談話重點草稿，或績效改善計畫草稿',
+      inputs: ['主管觀察到的具體行為與例子', '目標與過去的考核紀錄', '公司的績效制度與時程'],
+      steps: [
+        ['AI 做', '把主管給的例子整理成具體行為、期待與時程'],
+        ['人核准', '內容是否公平、是否符合制度'],
+        ['AI 做', '起草談話重點或改善計畫，每項期待都寫得出怎麼檢核'],
+        ['人做', '跟員工談']
+      ],
+      accept: '每個問題都附具體例子；每項期待都能在期限內檢核。',
+      risks: ['評論個性而不是行為', '同樣的情況給不同的人不同的標準'],
+      patterns: [/\bcoach/i, /performance (management|feedback|reviews?|improvement|evaluations?|issues)/i, /underperform/i, /\bpips?\b/i, /people management/i, /(advis|consult)\w* .{0,40}(managers|leaders|leadership) on .{0,30}(people|performance|team|employee)/i, /hr (guidance|advice)/i, /績效|主管諮詢|考核|輔導/]
+    }),
+    mod({
+      id: 'hr-insight',
+      name: '員工意見與人資數據',
+      families: ['hr'],
+      level: 'AUG',
+      levelWhy: '彙整與歸類可以交；原因怎麼解讀、要採取什麼行動由人判斷。',
+      trigger: '問卷結果出來、離職率上升，或主管想知道團隊的狀況',
+      output: '主題與數字的摘要，以及待決定的行動建議清單',
+      inputs: ['問卷結果、意見或座談紀錄', '人資數據：人數、離職、缺勤', '上一期的結果與已採取的行動'],
+      steps: [
+        ['AI 做', '把意見依主題歸類並計數，數字跟上一期比'],
+        ['人做', '跟主管與員工談，確認數字背後的原因'],
+        ['AI 做', '寫成摘要，列出行動選項'],
+        ['人核准', '要採取哪些行動、怎麼對員工說']
+      ],
+      accept: '每個主題都附次數與去識別的原話；人數太少會認出是誰的群組不單獨列出。',
+      risks: ['小群組的意見被認出是誰說的', '把推測寫成離職的原因'],
+      patterns: [/engagement/i, /surveys?/i, /sentiment/i, /attrition|retention|turnover/i, /(hr|people) (data|metrics|analytics)/i, /feedback (channels?|mechanisms?)/i, /roundtables?/i, /員工意見|滿意度|離職率|敬業度|人資數據|留任/]
+    }),
+    mod({
+      id: 'hr-org',
+      name: '人才盤點與組織規劃',
+      families: ['hr'],
+      level: 'AUG',
+      levelWhy: '名單與方案比較可以交；誰升遷、調動，組織怎麼改由人決定。',
+      trigger: '人才盤點、接班規劃，或組織要調整',
+      output: '人才盤點資料，或組織方案的比較',
+      inputs: ['現有組織與人數', '績效與潛力評等、職涯意願', '業務目標與預算限制'],
+      steps: [
+        ['AI 做', '把組織、職位與缺口整理出來'],
+        ['AI 做', '起草幾個方案，列出各自的影響'],
+        ['人核准', '評等、接班人選與採用的方案'],
+        ['人做', '溝通並執行調整']
+      ],
+      accept: '名單與數字都對得回原始資料；每個方案都寫出影響到誰、成本多少。',
+      risks: ['把評等當成客觀事實', '草案在定案前外流'],
+      patterns: [/talent (management|reviews?|planning|development)/i, /succession/i, /org(ani[sz]ation(al)?)? (design|effectiveness|structure|change|health)/i, /workforce planning/i, /change (management|initiatives)/i, /\bheadcount\b/i, /人才盤點|接班|組織調整|組織發展|人力規劃/]
+    }),
+    mod({
+      id: 'hr-onboard',
+      name: '到職、異動與離職流程',
+      families: ['hr'],
+      level: 'AUG',
+      levelWhy: '清單與通知可以交；合約、權限與例外要人核准。',
+      trigger: '有人到職、調動或離職',
+      output: '到職、異動或離職的檢核清單，以及通知草稿',
+      inputs: ['到職或離職日、職位與主管', '公司的到職與離職程序', '需要的系統、設備與權限'],
+      steps: [
+        ['AI 做', '依程序排出檢核清單，每項標負責人與日期'],
+        ['人核准', '合約條件、權限與例外'],
+        ['AI 做', '起草歡迎或交接通知'],
+        ['人做', '面談、交付與收回設備']
+      ],
+      accept: '每一項都有負責人與日期；沒有核准的權限沒有被開或留著。',
+      risks: ['離職後權限沒收回', '通知寫了還沒談定的條件'],
+      patterns: [/onboard/i, /orientation/i, /new hire/i, /lifecycle/i, /offboard/i, /\bexits?\b/i, /到職|新人報到|離職手續|異動/]
+    }),
+    mod({
       id: 'cross-notes',
       name: '週報與會議紀錄',
       families: ['general'],
@@ -843,6 +938,324 @@
       patterns: [/會議紀錄/, /週報/, /例行週報/, /meeting (notes|minutes)/i, /(weekly|status|progress) reports?/i]
     })
   ];
+
+  // 英文版產出。欄位跟中文一一對應：steps 只放文字，角色沿用中文那份的順序。
+  var EN = {
+    'support-reply': {
+      name: 'Customer replies',
+      levelWhy: 'Reply drafts can be handed off; refunds, compensation and exceptions need human approval.',
+      trigger: 'a customer calls, writes or asks online',
+      output: 'a reply draft and the case record',
+      inputs: ['The customer’s own words and order or account details', 'What you may offer: refunds, compensation, time limits', 'FAQs and standard replies'],
+      steps: ['Classify the issue, find the matching standard reply and tailor it to this customer', 'Refunds, compensation and exceptions', 'Send the reply; phone calls and upset customers are handled by a person', 'Write up the handling as a case record'],
+      accept: 'The reply promises nothing beyond your authority; the record shows the issue, the handling and the outcome.',
+      risks: ['Promising a policy the company does not have', 'Saying something is resolved while it is still being investigated']
+    },
+    'support-escalate': {
+      name: 'Escalations and issue reporting',
+      levelWhy: 'Summaries and grouping can be handed off; whether and to whom to escalate needs human judgement.',
+      trigger: 'a case cannot be solved at the front line, or the same issue keeps coming back',
+      output: 'an escalation ticket for the next team, or a summary of a recurring issue',
+      inputs: ['Case records', 'Escalation criteria and owning teams', 'The list of cases for the period'],
+      steps: ['Write the case as an escalation the other team can act on: symptom, what was tried, what the customer wants', 'Whether it really needs escalating and to whom', 'Group similar cases and count them', 'Chase the owning team and reply to the customer'],
+      accept: 'The receiving team can pick up the escalation without asking the front line; every group lists case numbers.',
+      risks: ['Writing a one-off as a widespread problem', 'Leaving out steps the customer already tried']
+    },
+    'support-kb': {
+      name: 'FAQs and knowledge base',
+      levelWhy: 'Article drafts can be handed off; accuracy and whether it can be public need human approval.',
+      trigger: 'the same question has been asked many times, or a process changed',
+      output: 'a draft FAQ or internal how-to article',
+      inputs: ['Resolved cases and the replies used', 'The current process or policy', 'Who reads it: customers or colleagues'],
+      steps: ['Turn resolved cases into question, steps and caveats', 'Whether the steps are right and nothing confidential is included', 'Publish and tell the front line'],
+      accept: 'Following the article gets the result; no customer’s personal data is included.',
+      risks: ['Writing an old process into a new article', 'Leaving personal data from cases in the text']
+    },
+    'logistics-kpi': {
+      name: 'Operations KPIs and shift reports',
+      levelWhy: 'Compiling the numbers can be handed off; causes and actions need human judgement.',
+      trigger: 'shift, daily or weekly performance needs to be reported',
+      output: 'a report of metrics against targets and a list of items behind target',
+      inputs: ['System exports for volume, speed, quality and safety', 'Targets for each metric', 'Exception logs for the period'],
+      steps: ['Compare the numbers with targets and flag items behind or sharply changed', 'Go to the floor and confirm why items are behind', 'Add the causes and actions taken to the report', 'Check numbers and wording before it goes out'],
+      accept: 'Every number ties back to a system export; every item behind target has a cause or is marked to be checked.',
+      risks: ['Inventing a cause nobody confirmed', 'Comparing shifts whose numbers are defined differently']
+    },
+    'logistics-improve': {
+      name: 'Process improvement and standard work',
+      levelWhy: 'Data work and document drafts can be handed off; what and how to change needs a human decision and a check on the floor.',
+      trigger: 'the same problem keeps happening, or a practice needs to become standard work',
+      output: 'a problem analysis (symptom, cause, countermeasure) or a draft standard work document',
+      inputs: ['Exception logs with time and location', 'Current work steps', 'Notes from the floor or interviews'],
+      steps: ['Group exceptions by time, location and type and list possible causes', 'Confirm the real cause on the floor', 'Write the countermeasure and new steps as a draft', 'The new steps, and any safety concerns'],
+      accept: 'Every cause is backed by records or floor observation; people on the floor can follow the new steps.',
+      risks: ['Concluding from records alone without checking the floor', 'New steps leaving out safety rules']
+    },
+    'logistics-plan': {
+      name: 'Staffing, capacity and inventory planning',
+      levelWhy: 'Calculations can be handed off; staffing affects people and inventory affects money, so both need human approval.',
+      trigger: 'you need to plan people, trucks or stock for the next period',
+      output: 'a staffing or replenishment calculation with its assumptions',
+      inputs: ['Demand forecast or order volume', 'Available people, vehicles and storage', 'Constraints: working-hour rules, safety stock, lead times'],
+      steps: ['Calculate people, trips or replenishment from demand and constraints', 'Flag periods and items that are short or over', 'The rota, overtime and replenishment quantities', 'Notify staff and suppliers'],
+      accept: 'Every number shows its method and assumptions; nothing breaks working-hour or safety-stock rules.',
+      risks: ['A rota that breaks working-hour rules', 'Treating a forecast as confirmed orders']
+    },
+    'design-draft': {
+      name: 'Design drafts and specs',
+      levelWhy: 'First drafts and variants can be handed off; direction, brand and the final design need a human decision.',
+      trigger: 'a screen, flow or asset needs to be designed',
+      output: 'first drafts or a few directions, plus specs for engineering or print',
+      inputs: ['The need and the use case', 'Brand and design guidelines', 'Size, platform and technical limits'],
+      steps: ['Set the direction and the problem to solve', 'Produce a few variants in that direction and turn the specs into a checklist', 'Pick a variant and refine it until it can ship', 'Prepare annotations and an asset list from the final design'],
+      accept: 'The final design follows the guidelines; engineering or vendors can use the spec without coming back.',
+      risks: ['Using images or fonts without a licence', 'A good-looking variant that does not solve the problem']
+    },
+    'design-research': {
+      name: 'User research synthesis',
+      levelWhy: 'Organising transcripts and grouping can be handed off; the interviews and the conclusions are done by people.',
+      trigger: 'a round of interviews or usability tests is finished',
+      output: 'a summary of findings: observation, how often it came up, quotes',
+      inputs: ['Interview transcripts or test notes', 'The questions this round should answer', 'Participant backgrounds'],
+      steps: ['Run the interviews and tests', 'Group notes by theme, each point with quotes and a count', 'What counts as a finding and in what priority', 'Write a summary for the team'],
+      accept: 'Every finding has a quote; one person’s view is not written as the majority’s.',
+      risks: ['Writing the researcher’s guess as something a participant said', 'Leaving participants’ personal data in']
+    },
+    'design-system': {
+      name: 'Design guidelines and component library',
+      levelWhy: 'Documentation and lists can be handed off; decisions about the guidelines are made by people.',
+      trigger: 'a component is added or changed, or usage is inconsistent',
+      output: 'usage notes for a component, or a list of inconsistencies',
+      inputs: ['Current design guidelines', 'The new or changed component', 'How it is actually used in the product today'],
+      steps: ['Compare current usage with the guidelines and list the inconsistencies', 'Change the guidelines or change the product', 'Write the component notes: when to use it and when not to'],
+      accept: 'Every example in the notes exists in the product; every item on the list points to a location.',
+      risks: ['Turning a one-off solution into a rule']
+    },
+    'product-spec': {
+      name: 'Requirements and planning',
+      levelWhy: 'Document drafts can be handed off; what to build, what not to build and the order need a human decision.',
+      trigger: 'a new requirement or product needs to be written up',
+      output: 'a draft requirements document: problem, audience, scope, acceptance criteria',
+      inputs: ['Raw customer or user feedback and data', 'Goals and constraints: timeline, resources, regulation', 'Input from related teams'],
+      steps: ['Turn the feedback and data into a problem statement and a few approaches', 'Which approach and where to cut scope', 'Write the requirements document with acceptance criteria and open questions', 'Review with engineering, design and leadership and finalise'],
+      accept: 'Every requirement has acceptance criteria; every data point in the document has a source.',
+      risks: ['Writing assumptions as validated customer needs', 'Leaving out open questions so it looks decided']
+    },
+    'product-track': {
+      name: 'Project status and risk tracking',
+      levelWhy: 'Compiling status can be handed off; delays, scope cuts and how to report upward need a human decision.',
+      trigger: 'the weekly project update is due, or something slips',
+      output: 'a status update: what is done, what is behind, risks and who needs to decide what',
+      inputs: ['The project plan and milestones', 'Status reported by each owner', 'Last period’s risks and to-dos'],
+      steps: ['Map each owner’s report to the milestones and flag what is behind or blocked', 'Confirm the cause and a new date with the owner of each late item', 'Write the update, listing who needs to make which decision', 'Check the wording before it goes out'],
+      accept: 'Every late item has an owner and a new date or is marked to be confirmed; items nobody reported on are not shown as on track.',
+      risks: ['Treating unreported items as fine', 'Inventing reasons for a delay']
+    },
+    'data-analysis': {
+      name: 'Data analysis and findings',
+      levelWhy: 'Queries and first-pass analysis can be handed off; how the question is defined and whether a conclusion holds need human judgement.',
+      trigger: 'someone brings a business question and needs numbers',
+      output: 'an analysis: the question, the data used, findings and limits',
+      inputs: ['The question and the decision it feeds', 'Tables and field definitions', 'Time range and exclusions'],
+      steps: ['Confirm the question and definitions with the person asking', 'Write queries, run numbers and make first-pass charts', 'Whether the query logic and definitions are right', 'Write up findings and limits, separating what the data shows from what is inferred'],
+      accept: 'Every number can be rerun; conclusions stay within what the data supports.',
+      risks: ['Writing correlation as causation', 'Using a definition that differs from existing reports without saying so']
+    },
+    'data-report': {
+      name: 'Reports and dashboards',
+      levelWhy: 'Reports and queries can be handed off; metric definitions must be agreed with the business.',
+      trigger: 'a recurring report is due, or a new dashboard is needed',
+      output: 'a report or dashboard with metric definitions and data sources',
+      inputs: ['Metrics to show and their definitions', 'Data sources and refresh frequency', 'What decision the reader will make with it'],
+      steps: ['Metric definitions', 'Write the queries, lay out the view and show the data refresh time', 'Reconcile with existing reports and list what does not match', 'Confirm why things do not match, then launch'],
+      accept: 'Each metric matches existing reports or the difference is explained; every chart shows its data time.',
+      risks: ['The same metric name meaning different things', 'Stale data going unnoticed']
+    },
+    'legal-contract': {
+      name: 'Contract review and drafting',
+      levelWhy: 'Legal judgement and negotiation belong to counsel; AI only compares, flags and drafts.',
+      trigger: 'a contract arrives for review, or one needs drafting from a template',
+      output: 'a clause comparison (where it departs from the template), or a first draft from the template',
+      inputs: ['The other side’s draft or the template to use', 'Standard clauses and where you can give ground', 'Background on the deal'],
+      steps: ['Compare clause by clause with the template and flag departures and gaps', 'Decide what is acceptable and how to change it', 'Turn counsel’s decisions into a revised draft', 'Check every clause before it goes out'],
+      accept: 'Every departure is flagged; the revision contains no change counsel did not decide.',
+      risks: ['Missing an unfavourable clause', 'Treating template wording as agreed by the other side']
+    },
+    'legal-research': {
+      name: 'Legal research and compliance tracking',
+      levelWhy: 'Legal advice comes from counsel; AI only compiles provisions and sources.',
+      trigger: 'the business asks whether something is allowed, or a regulation changes',
+      output: 'a compilation of relevant provisions and guidance with sources and dates',
+      inputs: ['The question and the facts', 'The jurisdiction', 'Existing company policy'],
+      steps: ['Find the relevant provisions, each with a source and effective date', 'Verify the provisions are current and form the legal view', 'Rewrite counsel’s view so the business can follow it', 'Check before it goes out'],
+      accept: 'Every provision has an official source; nothing repealed is cited.',
+      risks: ['Citing provisions that do not exist or were amended', 'Making the compilation read like formal legal advice']
+    },
+    'fin-ap': {
+      name: 'Payables, receivables and invoicing',
+      levelWhy: 'Matching and lists can be handed off; payments and write-offs need human approval.',
+      trigger: 'invoices or payment requests arrive, or a payment or collection date comes up',
+      output: 'a checked payment list, or a list of overdue receivables to chase',
+      inputs: ['Invoices, purchase orders and receiving records', 'Payment terms and approval limits', 'Bank receipts'],
+      steps: ['Three-way match invoices, purchase orders and receipts and flag mismatches', 'The payment list', 'Match receipts to receivables and list unmatched and overdue items', 'Pay, chase and handle disputes'],
+      accept: 'Every payment has all three documents; unmatched cash is listed, not forced to match.',
+      risks: ['Paying twice', 'Applying a similar amount to the wrong customer']
+    },
+    'fin-audit': {
+      name: 'Audit, internal controls and tax filing',
+      levelWhy: 'Preparing data and workpapers can be handed off; judgement and sign-off stay with people.',
+      trigger: 'an audit, control test or filing deadline comes up',
+      output: 'draft workpapers or filing data with a source for every number',
+      inputs: ['The list of items requested for the audit or filing', 'Ledger data and supporting documents', 'Last period’s workpapers and adjustments'],
+      steps: ['Gather data against the list and flag missing items', 'Fill the workpapers with a source for each number', 'Accounting and tax judgements', 'Sign off, file and answer the auditors'],
+      accept: 'Every number ties to the ledger; missing items are listed.',
+      risks: ['Using the wrong tax rate or filing period', 'Including amounts without support']
+    },
+    'it-ticket': {
+      name: 'IT support and troubleshooting',
+      levelWhy: 'Looking up runbooks and listing steps can be handed off; anything that touches machines or access is done by people.',
+      trigger: 'someone reports a problem, or monitoring raises an alert',
+      output: 'troubleshooting steps and a ticket record',
+      inputs: ['The report and the error message', 'Basic details of the device and system', 'Existing runbooks'],
+      steps: ['List likely causes from the error and order checks from simple to hard', 'Do the checks and the hands-on fix', 'Replacing hardware, resetting access, taking systems down', 'Write the handling into the ticket'],
+      accept: 'The record shows symptom, cause and what was done; no step needing approval was skipped.',
+      risks: ['Suggesting steps that cause data loss', 'Resetting access without verifying identity']
+    },
+    'safety-inspect': {
+      name: 'Safety inspections and incident records',
+      levelWhy: 'Inspections and investigations need people on site; AI only organises records and reports.',
+      trigger: 'a routine inspection is due, or an incident or near miss happens',
+      output: 'a draft inspection record or incident report',
+      inputs: ['The inspection checklist', 'Photos and notes from the site', 'Statements from the people involved and witnesses'],
+      steps: ['Inspect the site and interview people', 'Turn the notes into a record: time, place, findings, photo numbers', 'The root cause and corrective actions', 'Make legally required reports and follow up on fixes'],
+      accept: 'Every finding matches a photo or note; the cause field stays blank until a person decides it.',
+      risks: ['Inventing a cause for an incident', 'Missing a legal reporting deadline']
+    },
+    'safety-train': {
+      name: 'Safety training and regulatory tracking',
+      levelWhy: 'Materials and rosters can be handed off; whether content and regulatory references are right needs a person.',
+      trigger: 'new people start, refresher training is due, or a regulation changes',
+      output: 'a draft of training material and the list of people who need training',
+      inputs: ['Applicable regulations and company rules', 'The staff list and last training dates', 'Recent incidents and inspection findings'],
+      steps: ['Work out from the roster who needs training and list who is overdue', 'Draft material from the rules and recent incidents', 'The content and the regulatory references', 'Run the session, take attendance and keep records'],
+      accept: 'The roster matches HR records; every rule cited is the current version.',
+      risks: ['Citing an amended regulation', 'Leaving agency or contractor staff off the roster']
+    },
+    'hr-er': {
+      name: 'Employee relations and workplace investigations',
+      levelWhy: 'Investigations and discipline affect people’s jobs and carry legal risk, so people lead; AI only organises records and timelines.',
+      trigger: 'an employee raises a complaint, a conflict escalates, or a policy breach needs investigating',
+      output: 'an investigation timeline, a list of questions, and a draft case summary',
+      inputs: ['The complaint or report as written', 'Applicable policies and rules', 'Interview notes and documents already collected'],
+      steps: ['Order the events into a timeline and list facts still missing and questions to ask', 'Interview the people involved and collect evidence', 'Write the case summary, separating what was said from what is supported by evidence', 'The finding and any action'],
+      accept: 'Every statement in the summary names its source; the finding is left blank until a person decides it.',
+      risks: ['Writing an allegation as an established fact', 'Personal details leaking to people outside the case']
+    },
+    'hr-coach': {
+      name: 'Manager coaching and performance management',
+      levelWhy: 'Talking points and documents can be drafted; feedback and performance decisions are made by people.',
+      trigger: 'a manager asks for advice, review season starts, or someone is underperforming',
+      output: 'a talking-points draft for the manager, or a draft performance improvement plan',
+      inputs: ['The specific behaviour and examples the manager observed', 'Goals and past reviews', 'Performance policy and the review timeline'],
+      steps: ['Turn the manager’s examples into specific behaviours, expectations and a timeline', 'Whether the content is fair and consistent with policy', 'Draft the talking points or improvement plan, each expectation with a way to check it', 'The conversation with the employee'],
+      accept: 'Every concern has a concrete example; every expectation can be checked by a date.',
+      risks: ['Judging personality instead of behaviour', 'Treating similar cases differently']
+    },
+    'hr-insight': {
+      name: 'Employee sentiment and HR data',
+      levelWhy: 'Compiling and grouping can be handed off; reading the causes and choosing actions need people.',
+      trigger: 'survey results come in, attrition rises, or leadership wants to know how the team is doing',
+      output: 'a summary of themes and numbers, plus a list of suggested actions to decide on',
+      inputs: ['Survey results, comments or roundtable notes', 'HR data: headcount, attrition, absence', 'Last period’s results and actions taken'],
+      steps: ['Group comments into themes and count them; compare numbers with last period', 'Talk to managers and employees to confirm what is behind the numbers', 'Write the summary and list action options', 'Which actions to take and how to tell people'],
+      accept: 'Every theme has a count and anonymised quotes; groups too small to stay anonymous are not shown.',
+      risks: ['Small groups making individuals identifiable', 'Writing a guess as the cause of attrition']
+    },
+    'hr-org': {
+      name: 'Talent reviews and organisation planning',
+      levelWhy: 'Lists and option comparisons can be handed off; who is promoted, moved or restructured is decided by people.',
+      trigger: 'a talent review, succession planning or reorganisation comes up',
+      output: 'talent review materials, or a comparison of organisation options',
+      inputs: ['Current structure and headcount', 'Performance and potential ratings, career wishes', 'Business goals and budget limits'],
+      steps: ['Compile the structure, roles and gaps', 'Draft a few options with the impact of each', 'Ratings, successors and the chosen option', 'Communicate and carry out the change'],
+      accept: 'Every name and number traces to source data; options show who is affected and the cost.',
+      risks: ['Treating ratings as objective fact', 'Draft materials leaking before the decision']
+    },
+    'hr-onboard': {
+      name: 'Onboarding and the employee lifecycle',
+      levelWhy: 'Checklists and notices can be handed off; contracts, access and exceptions need human approval.',
+      trigger: 'someone joins, moves role or leaves',
+      output: 'an onboarding, transfer or exit checklist and draft notices',
+      inputs: ['Start or exit date, role and manager', 'The company’s onboarding and exit procedures', 'Systems, equipment and access needed'],
+      steps: ['Build the checklist from the procedure, each item with an owner and a date', 'Contract terms, access and exceptions', 'Draft the welcome or handover notices', 'Meet the person, hand over equipment and collect it back'],
+      accept: 'Every item has an owner and a date; no access is granted or kept without approval.',
+      risks: ['Access not removed after someone leaves', 'Notices stating terms that were not agreed']
+    },
+    'cross-notes': {
+      name: 'Weekly reports and meeting notes',
+      levelWhy: 'Notes can be drafted; decisions only count after a person confirms them.',
+      trigger: 'a meeting ends, or the weekly report is due',
+      output: 'draft meeting notes or a weekly report',
+      inputs: ['Discussions, decisions and to-dos that actually happened', 'The usual report format'],
+      steps: ['Collect only what actually happened into a draft', 'Whether any decision is written wrongly', 'Send it'],
+      accept: 'Every decision ties back to the notes; nothing that was not discussed is added.',
+      risks: ['Writing an undecided item as decided']
+    }
+  };
+
+  var WHO_EN = { 'AI 做': 'AI does', '人核准': 'Human approves', '人做': 'Human does' };
+
+  var TEXT = {
+    zh: {
+      empty: '請貼上 JD 全文。',
+      tooLong: function (n) { return '超過 ' + n.toLocaleString('zh-Hant') + ' 字。請只留職稱與工作內容。'; },
+      noResp: '找不到工作內容。請用條列寫出職責，或把「工作內容」小標留著。',
+      noModules: '這份 JD 沒有收成可交接的模組。職責可能寫成特質，或這個職業的句型還沒涵蓋。',
+      overflow: '簡單版最多 6 個模組，這條先留給你本人。',
+      soft: '沒有單獨的產出與驗收，屬於關係、協調或現場接待，簡單版不把它做成模組。',
+      noMatch: '對不上這版收得到的工作模組。可能是句型還沒涵蓋，或這條本身不是一件可交接的工作。',
+      untitled: '未命名職位',
+      humanTitle: '仍然需要你本人'
+    },
+    en: {
+      empty: 'Paste the full job description.',
+      tooLong: function (n) { return 'Over ' + n.toLocaleString('en') + ' characters. Keep only the title and responsibilities.'; },
+      noResp: 'No responsibilities found. List the duties as bullets, or keep the "Responsibilities" heading.',
+      noModules: 'No hand-off modules came out of this job description. The duties may be written as traits, or this role’s phrasing is not covered yet.',
+      overflow: 'The simple version keeps at most 6 modules, so this one stays with you.',
+      soft: 'No standalone output or acceptance check: this is relationship, coordination or front-desk work, so the simple version does not turn it into a module.',
+      noMatch: 'Does not match any module in this version. The phrasing may not be covered yet, or the line is not a task you can hand off.',
+      untitled: 'Untitled role',
+      humanTitle: 'Still needs you'
+    }
+  };
+
+  function localize(item, lang) {
+    var e = lang === 'en' ? EN[item.id] : null;
+    if (!e) {
+      return { name: item.name, levelWhy: item.levelWhy, trigger: item.trigger, output: item.output, inputs: item.inputs.slice(), steps: item.steps.map(function (step) { return step.slice(); }), accept: item.accept, risks: item.risks.slice() };
+    }
+    return {
+      name: e.name,
+      levelWhy: e.levelWhy,
+      trigger: e.trigger,
+      output: e.output,
+      inputs: e.inputs.slice(),
+      steps: item.steps.map(function (step, index) { return [step[0], e.steps[index]]; }),
+      accept: e.accept,
+      risks: e.risks.slice()
+    };
+  }
+
+  function whoLabel(who, lang) {
+    return lang === 'en' ? (WHO_EN[who] || who) : who;
+  }
+
+  // 一句話講這個模組：「…時，交出…。」或 "When …, deliver …."
+  function summaryLine(module) {
+    if (module.lang === 'en') return 'When ' + module.trigger + ', deliver ' + module.output + '.';
+    return module.trigger + '時，交出' + module.output + '。';
+  }
 
   var SAMPLES = [
     {
@@ -1001,133 +1414,163 @@
     return score;
   }
 
-  function humanReason(line) {
-    if (SOFT.test(line)) return '沒有單獨的產出與驗收，屬於關係、協調或現場接待，簡單版不把它做成模組。';
-    return '對不上這版收得到的工作模組。可能是句型還沒涵蓋，或這條本身不是一件可交接的工作。';
+  function humanReason(line, lang) {
+    var T = TEXT[lang === 'en' ? 'en' : 'zh'];
+    return SOFT.test(line) ? T.soft : T.noMatch;
   }
 
-  function quote(line) {
-    return '「' + String(line).replace(/\s+/g, ' ').trim() + '」';
+  function quote(line, lang) {
+    var text = String(line).replace(/\s+/g, ' ').trim();
+    return lang === 'en' ? '“' + text + '”' : '「' + text + '」';
   }
+
+  var MD = {
+    zh: { what: '這個模組在做什麼', source: '對應 JD 原文：', level: '可取代程度', inputs: '輸入', inputsNote: '下面是這類工作通常要準備的東西，JD 沒寫到的不當作事實。', steps: '步驟', deliver: '交付物與驗收', out: '產出', check: '驗收', risks: '風險與人工把關', drop: '若上面引用的原文其實不是這件事，拿掉這份，不要硬用。', prompt: '給 AI 的指令（可直接貼）', promptNote: '把「（貼在這裡）」換成你的材料，整段貼給 AI。', sep: '：', end: '。' },
+    en: { what: 'What this module does', source: 'From the job description:', level: 'How much AI can take', inputs: 'Inputs', inputsNote: 'What this kind of work usually needs. Anything the job description does not say is not treated as fact.', steps: 'Steps', deliver: 'Deliverable and acceptance', out: 'Output', check: 'Acceptance', risks: 'Risks and human checks', drop: 'If the quoted line is not really this task, drop this module instead of forcing it.', prompt: 'Prompt for your AI (paste as is)', promptNote: 'Replace each "(paste here)" with your material and paste the whole thing into your AI.', sep: ': ', end: '.' }
+  };
 
   function moduleMarkdown(module) {
-    var lines = [];
-    lines.push('# ' + module.name);
-    lines.push('');
-    lines.push('## 這個模組在做什麼');
-    lines.push('');
-    lines.push(module.trigger + '時，交出' + module.output + '。');
-    lines.push('');
-    lines.push('對應 JD 原文：');
-    lines.push('');
+    var L = MD[module.lang === 'en' ? 'en' : 'zh'];
+    var lines = ['# ' + module.name, '', '## ' + L.what, '', summaryLine(module), '', L.source, ''];
     module.bullets.forEach(function (bullet) {
-      lines.push('- ' + quote(bullet));
+      lines.push('- ' + quote(bullet, module.lang));
     });
-    lines.push('');
-    lines.push('## 可取代程度');
-    lines.push('');
-    lines.push(module.level + '。' + module.levelWhy);
-    lines.push('');
-    lines.push('## 輸入');
-    lines.push('');
-    lines.push('下面是這類工作通常要準備的東西，JD 沒寫到的不當作事實。');
-    lines.push('');
+    lines.push('', '## ' + L.level, '', module.level + L.end + (module.lang === 'en' ? ' ' : '') + module.levelWhy, '');
+    lines.push('## ' + L.inputs, '', L.inputsNote, '');
     module.inputs.forEach(function (item) {
       lines.push('- ' + item);
     });
-    lines.push('');
-    lines.push('## 步驟');
-    lines.push('');
+    lines.push('', '## ' + L.steps, '');
     module.steps.forEach(function (step, index) {
-      lines.push((index + 1) + '. ' + step[0] + '：' + step[1]);
+      lines.push((index + 1) + '. ' + whoLabel(step[0], module.lang) + L.sep + step[1]);
     });
-    lines.push('');
-    lines.push('## 交付物與驗收');
-    lines.push('');
-    lines.push('- 產出：' + module.output);
-    lines.push('- 驗收：' + module.accept);
-    lines.push('');
-    lines.push('## 風險與人工把關');
-    lines.push('');
+    lines.push('', '## ' + L.deliver, '', '- ' + L.out + L.sep + module.output, '- ' + L.check + L.sep + module.accept, '');
+    lines.push('## ' + L.risks, '');
     module.risks.forEach(function (risk) {
       lines.push('- ' + risk);
     });
-    lines.push('- 若上面引用的原文其實不是這件事，拿掉這份，不要硬用。');
-    lines.push('');
-    lines.push('## 給 AI 的指令（可直接貼）');
-    lines.push('');
-    lines.push('```');
-    lines.push(module.prompt);
-    lines.push('```');
-    lines.push('');
+    lines.push('- ' + L.drop, '', '## ' + L.prompt, '', L.promptNote, '', '```', module.prompt, '```', '');
     return lines.join('\n');
   }
 
-  function buildPrompt(module) {
-    var quoted = module.bullets.map(function (bullet) {
-      return '- ' + quote(bullet);
-    }).join('\n');
-    return [
-      '你協助完成「' + module.name + '」這一件工作。只使用我提供的材料。材料沒寫的數字、承諾、劑量、價格與原因，保持空白並標成待確認。',
-      '',
-      '何時開始：' + module.trigger + '。',
-      '要交出：' + module.output + '。',
-      '可取代程度：' + module.level + '。' + module.levelWhy,
-      '',
-      '原 JD 只包含這幾句：',
-      quoted,
-      '',
-      '每一步用「AI 做」「人核准」或「人做」起頭。人核准與人做的步驟，停下來等我，不要自己做完。',
-      '開始前先問我還缺哪些輸入。'
-    ].join('\n');
+  // 步驟裡的三種角色，換成對 AI 說話的口氣。
+  var STEP_VOICE = {
+    zh: {
+      'AI 做': ['你做', ''],
+      '人核准': ['停下來等我', '。把需要我決定的事列成清單，我回覆之前不要往下做'],
+      '人做': ['我自己做', '。你不要代做，只提醒我，並列出我需要帶的東西']
+    },
+    en: {
+      'AI 做': ['you do', ''],
+      '人核准': ['stop and wait for me', '. List what I need to decide and do not continue until I reply'],
+      '人做': ['I do this myself', '. Do not do it for me; remind me and list what I need to bring']
+    }
+  };
+
+  var PROMPT = {
+    zh: {
+      open: function (name) { return '這次請你幫我做「' + name + '」這件工作。'; },
+      when: '【什麼時候做】', deliver: '【要交出】', material: '【我給你的材料】',
+      materialNote: '下面每一項我會貼上內容。沒貼的那一項，先問我，不要自己補。',
+      slot: '（貼在這裡）', colon: '：', order: '【照這個順序做】', check: '【交件前自己檢查】',
+      traceable: '每一個數字、日期、名稱，都指得出是從我貼的哪一項材料來的。',
+      avoid: '【不要犯的錯】', rules: '【規則】',
+      rule1: '只使用我貼的材料。材料沒寫的數字、承諾、價格與原因，留空並標「待確認」，不要推測。',
+      rule3: '先告訴我材料齊不齊、缺什麼，我說可以再開始。',
+      rule4: '用繁體中文回覆。產出放最前面，待確認的事項列在最後。',
+      source: '【這件工作在職缺說明裡的原句，供你理解範圍】',
+      end: '。', open2: '（', close2: '）'
+    },
+    en: {
+      open: function (name) { return 'Please help me with this task: ' + name + '.'; },
+      when: '[When to do it] ', deliver: '[What to deliver] ', material: '[Material I will give you]',
+      materialNote: 'I will paste each item below. If an item is missing, ask me first; do not fill it in yourself.',
+      slot: '(paste here)', colon: ':', order: '[Do it in this order]', check: '[Check before you hand it over]',
+      traceable: 'Every number, date and name can be traced to one of the items I pasted.',
+      avoid: '[Mistakes to avoid]', rules: '[Rules]',
+      rule1: 'Use only the material I paste. Leave any number, promise, price or reason that is not in it blank and mark it "to be confirmed". Do not guess.',
+      rule3: 'First tell me whether the material is complete and what is missing. Start only when I say so.',
+      rule4: 'Reply in English. Put the deliverable first and the to-be-confirmed items at the end.',
+      source: '[The lines in the job description this covers, for scope only]',
+      end: '.', open2: '(', close2: ') '
+    }
+  };
+
+  function sentence(text, end) {
+    return /[.。!?！？]$/.test(text) ? text : text + end;
   }
 
-  function humanMarkdown(items) {
-    var lines = ['# 仍然需要你本人', '', '這些職責沒有收成工作模組。', ''];
+  // 貼進任何一個 AI 對話就能用：材料留空格給人填，步驟、驗收、禁忌都寫死。
+  function buildPrompt(module) {
+    var lang = module.lang === 'en' ? 'en' : 'zh';
+    var P = PROMPT[lang];
+    var cap = function (text) { return lang === 'en' ? text.charAt(0).toUpperCase() + text.slice(1) : text; };
+    var lines = [P.open(module.name), '', P.when + sentence(cap(module.trigger), P.end), P.deliver + sentence(cap(module.output), P.end), '', P.material, P.materialNote];
+    module.inputs.forEach(function (input, index) {
+      lines.push('', (index + 1) + '. ' + input + P.colon, P.slot);
+    });
+    lines.push('', P.order);
+    module.steps.forEach(function (step, index) {
+      var voice = STEP_VOICE[lang][step[0]] || [step[0], ''];
+      lines.push((index + 1) + '. ' + P.open2 + voice[0] + P.close2 + sentence(step[1] + voice[1], P.end));
+    });
+    lines.push('', P.check, '- ' + module.accept, '- ' + P.traceable, '', P.avoid);
+    module.risks.forEach(function (risk) {
+      lines.push('- ' + sentence(risk, P.end));
+    });
+    lines.push('', P.rules, '- ' + P.rule1, '- ' + module.levelWhy, '- ' + P.rule3, '- ' + P.rule4, '', P.source);
+    module.bullets.forEach(function (bullet) {
+      lines.push('- ' + quote(bullet, lang));
+    });
+    return lines.join('\n');
+  }
+
+  function humanMarkdown(items, lang) {
+    var en = lang === 'en';
+    var lines = ['# ' + TEXT[en ? 'en' : 'zh'].humanTitle, '', en ? 'These duties did not become hand-off modules.' : '這些職責沒有收成工作模組。', ''];
     items.forEach(function (item) {
-      lines.push('- ' + quote(item.text));
-      lines.push('  - 原因：' + item.reason);
+      lines.push('- ' + quote(item.text, lang));
+      lines.push((en ? '  - Why: ' : '  - 原因：') + item.reason);
     });
     lines.push('');
     return lines.join('\n');
   }
 
-  function fileName(index, name) {
-    var safe = String(name).replace(/[\\/:*?"<>|]/g, '－').replace(/\s+/g, '');
+  function fileName(index, name, lang) {
+    var safe = String(name).replace(/[\\/:*?"<>|]/g, '－');
+    safe = lang === 'en' ? safe.replace(/[,，]/g, '').trim().replace(/\s+/g, '-') : safe.replace(/\s+/g, '');
     var prefix = index < 10 ? '0' + index : String(index);
     return prefix + '-' + safe + '.md';
   }
 
   function combinedMarkdown(result) {
+    var en = result.lang === 'en';
     var lines = [];
-    lines.push('# ' + result.title + '：JD2MD 工作模組');
+    lines.push('# ' + result.title + (en ? ': JD2MD work modules' : '：JD2MD 工作模組'));
     lines.push('');
-    lines.push('> 簡單版在瀏覽器內依職責句型歸併，未經模型改寫。不會為了湊數補上無關模組。請先核對每一節引用的 JD 原文。');
+    lines.push(en
+      ? '> The simple version groups duties by phrasing in your browser, with no model rewriting. It never adds unrelated modules to fill space. Check the quoted job description lines in each section first.'
+      : '> 簡單版在瀏覽器內依職責句型歸併，未經模型改寫。不會為了湊數補上無關模組。請先核對每一節引用的 JD 原文。');
     lines.push('');
-    if (result.source) lines.push('- 來源：' + result.source);
-    lines.push('- 模組：' + (result.modules.length ? result.modules.map(function (item) { return item.name; }).join('、') : '沒有收成模組'));
-    lines.push('- 留給你本人：' + result.human.length + ' 條');
+    if (result.source) lines.push((en ? '- Source: ' : '- 來源：') + result.source);
+    lines.push((en ? '- Modules: ' : '- 模組：') + (result.modules.length ? result.modules.map(function (item) { return item.name; }).join(en ? '; ' : '、') : (en ? 'none' : '沒有收成模組')));
+    lines.push(en ? '- Left with you: ' + result.human.length + ' lines' : '- 留給你本人：' + result.human.length + ' 條');
     lines.push('');
     result.modules.forEach(function (item) {
-      lines.push('---');
-      lines.push('');
-      lines.push(item.markdown.trim());
-      lines.push('');
+      lines.push('---', '', item.markdown.trim(), '');
     });
     if (result.human.length) {
-      lines.push('---');
-      lines.push('');
-      lines.push(humanMarkdown(result.human).trim());
-      lines.push('');
+      lines.push('---', '', humanMarkdown(result.human, result.lang).trim(), '');
     }
     return lines.join('\n').replace(/\n{3,}/g, '\n\n');
   }
 
-  function emptyResult(title, message) {
+  function emptyResult(title, message, lang) {
     return {
       ok: false,
       error: message,
-      title: title || '未命名職位',
+      lang: lang === 'en' ? 'en' : 'zh',
+      title: title || TEXT[lang === 'en' ? 'en' : 'zh'].untitled,
       families: [],
       modules: [],
       human: [],
@@ -1139,13 +1582,15 @@
 
   function convert(text, options) {
     options = options || {};
+    var lang = options.lang === 'en' ? 'en' : 'zh';
+    var T = TEXT[lang];
     var raw = String(text || '').replace(/\r/g, '').trim();
-    if (!raw) return emptyResult('', '請貼上 JD 全文。');
-    if (raw.length > MAX_CHARS) return emptyResult('', '超過 ' + MAX_CHARS.toLocaleString('zh-Hant') + ' 字。請只留職稱與工作內容。');
+    if (!raw) return emptyResult('', T.empty, lang);
+    if (raw.length > MAX_CHARS) return emptyResult('', T.tooLong(MAX_CHARS), lang);
 
     var parsed = parseJD(raw);
     if (!parsed.responsibilities.length) {
-      return emptyResult(parsed.title, '找不到工作內容。請用條列寫出職責，或把「工作內容」小標留著。');
+      return emptyResult(parsed.title, T.noResp, lang);
     }
 
     var byTitle = titleFamily(parsed.title);
@@ -1178,7 +1623,7 @@
         }).filter(function (item) { return item.score > 0; });
       }
       if (!hits.length) {
-        human.push({ text: line, reason: humanReason(line) });
+        human.push({ text: line, reason: humanReason(line, lang) });
         return;
       }
       hits.sort(function (a, b) { return b.score - a.score; });
@@ -1210,22 +1655,24 @@
         var stillKept = ranked.some(function (other) {
           return buckets[other.id].indexOf(line) !== -1;
         });
-        if (!stillKept) human.push({ text: line, reason: '簡單版最多 6 個模組，這條先留給你本人。' });
+        if (!stillKept) human.push({ text: line, reason: T.overflow });
       });
     });
 
     var modules = ranked.map(function (item) {
+      var loc = localize(item, lang);
       var copy = {
         id: item.id,
-        name: item.name,
+        lang: lang,
+        name: loc.name,
         level: item.level,
-        levelWhy: item.levelWhy,
-        trigger: item.trigger,
-        output: item.output,
-        inputs: item.inputs.slice(),
-        steps: item.steps.map(function (step) { return step.slice(); }),
-        accept: item.accept,
-        risks: item.risks.slice(),
+        levelWhy: loc.levelWhy,
+        trigger: loc.trigger,
+        output: loc.output,
+        inputs: loc.inputs,
+        steps: loc.steps,
+        accept: loc.accept,
+        risks: loc.risks,
         bullets: buckets[item.id].slice()
       };
       copy.prompt = buildPrompt(copy);
@@ -1234,13 +1681,14 @@
     });
 
     var files = modules.map(function (item, index) {
-      return { filename: fileName(index + 1, item.name), markdown: item.markdown };
+      return { filename: fileName(index + 1, item.name, lang), markdown: item.markdown };
     });
-    if (human.length) files.push({ filename: fileName(files.length + 1, '仍然需要你本人'), markdown: humanMarkdown(human) });
+    if (human.length) files.push({ filename: fileName(files.length + 1, T.humanTitle, lang), markdown: humanMarkdown(human, lang) });
 
     var result = {
       ok: true,
-      error: modules.length ? '' : '這份 JD 沒有收成可交接的模組。職責可能寫成特質，或這個職業的句型還沒涵蓋。',
+      error: modules.length ? '' : T.noModules,
+      lang: lang,
       title: parsed.title,
       families: families,
       modules: modules,
@@ -1344,6 +1792,10 @@
 
   return {
     MAX_CHARS: MAX_CHARS,
+    MODULES: MODULES,
+    EN: EN,
+    whoLabel: whoLabel,
+    summaryLine: summaryLine,
     SAMPLES: SAMPLES,
     parseJD: parseJD,
     convert: convert,
