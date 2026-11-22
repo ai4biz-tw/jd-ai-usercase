@@ -12,15 +12,21 @@
   var FAMILIES = [
     { id: 'clinical', title: /護理|護士|\bnurs(e|ing)\b/i, re: /護理|護士|病房|給藥|病歷|生命徵象|病患|護理師|\bnurs(e|ing)\b/i },
     { id: 'design', title: /designer|\bux\b|\bui\b|設計師|art director|visual design|美術/i, re: /設計稿|視覺設計|介面設計|wireframe|prototyp|design system|user research/i },
+    { id: 'policy', title: /public policy|regulatory affairs|government (affairs|relations)|policy (manager|lead|principal|director|advisor)|公共政策|政府關係|政策/i, re: /公共政策|立法|政府關係|monitor\w* .{0,30}(polic\w*|legislat\w*)|policy (developments|positions|proposals)|legislat|policymakers?|government (entities|officials)|policy advocacy/i },
+    { id: 'econ', title: /economist|經濟學家|經濟研究/i, re: /經濟模型|計量|econometric|causal inference|economic (issues|models?|analysis)/i },
     { id: 'legal', title: /counsel|\blegal\b|paralegal|attorney|lawyer|法務|律師/i, re: /合約|契約|法規|法遵|訴訟|\bcontracts?\b|legal (advice|research|risk)|litigation/i },
     { id: 'support', title: /customer (service|support|care|experience)|(technical|customer) care|support (specialist|associate|agent|representative|advisor)|客服|客戶服務|help ?desk agent/i, re: /客服|客訴|來電|退換貨|customer (inquir|contact|complaint)|support tickets?/i },
+    { id: 'security', title: /loss prevention|physical security|security (manager|specialist|officer|guard|lead|supervisor|coordinator)|(?<!\ber\s{1,3})investigator|investigations? (specialist|manager|analyst)|\binv specialist|fraud|risk specialist|防損|保全|稽查員/i, re: /防損|保全|竊盜|loss prevention|theft|shrink|security incidents?|investigations?/i },
+    { id: 'medical', title: /medical (representative|assistant|officer)|onsite medical|pharmacist|pharmacy (technician|tech)|paramedic|\bemt\b|first aid|occupational health|藥師|醫護|駐廠護理/i, re: /急救|醫護|藥品|first aid|\bcpr\b|\baed\b|prescriptions?|dispens/i },
+    { id: 'learning', title: /learning (coordinator|manager|specialist|partner|lead|designer)|training (specialist|manager|coordinator|lead)|instructional design|\btrainer\b|facilitator|responsable formation|ラーニング|講師|培訓|教育訓練/i, re: /培訓|課程|教材|講師|training programs?|curricul|learning (programs?|content)|instructional/i },
     { id: 'safety', title: /safety|\behs\b|\bwhs\b|\bhse\b|職安|環安|工安/i, re: /職安|工安|巡檢|職災|safety (audit|inspection|training)|incident investigation|hazard/i },
-    { id: 'it', title: /it support|it technician|it engineer|desktop support|service desk|data cent(er|re) (technician|engineer|operations)|資訊人員|\bmis\b|網管/i, re: /故障排除|報修|資訊設備|help ?desk|break.?fix|cabling|technical support/i },
+    { id: 'it', title: /it support|install(ation)? technician|it technician|it engineer|desktop support|service desk|data cent(er|re) (technician|engineer|operations)|資訊人員|\bmis\b|網管/i, re: /故障排除|報修|資訊設備|help ?desk|break.?fix|cabling|technical support/i },
+    { id: 'facilities', title: /maintenance|facilit(y|ies)|construction|real estate|technician|\brme\b|workplace (manager|services)|廠務|設備維護|修繕|營建|機電/i, re: /保養|維修|工單|修繕|preventive maintenance|work orders?|equipment (repair|maintenance)|construction/i },
     { id: 'finance', title: /financ|accountant|accounting|財務|會計|fp&a|controller|treasury|\btax\b|internal audit|auditor\b|出納|payable|receivable/i, re: /財務|會計|預算|fp&a|月結|帳務|資金|財報|month-end|general ledger|journal entr|reconciliation/i },
     { id: 'data', title: /data analyst|business intelligence|\bbi\b|analytics|business analyst|data scientist|資料分析|數據分析|商業分析/i, re: /資料分析|數據分析|儀表板|\bsql\b|dashboards?|data (pipeline|warehouse|model)/i },
     { id: 'hr', title: /recruit|candidate experience|talent acquisition|human resources|\bhr\b|\bhrbp\b|\bhrp\b|\bpxt\b|people (ops|partner|operations)|employee relations|\ber investigator|labou?r relations|compensation|staffing manager|人資|招募|薪酬|payroll/i, re: /人資|招募|薪資|面試|任用|recruiting|candidates|payroll/i },
     { id: 'product', title: /product (manager|mgr)|program (manager|mgr)|project (manager|mgr)|product owner|產品經理|專案經理|\bpm\b|\btpm\b|\bpmt\b|專案管理/i, re: /產品規劃|需求文件|專案進度|roadmap|\bprds?\b|user stories|project plans?/i },
-    { id: 'content', title: /marketing|content|copywrit|social media|\bbrand|行銷|文案|社群|編輯|小編|communications|editor/i, re: /文案|行銷|社群|品牌|內容規劃|內容日曆|行銷企劃|copywriting|content calendar|social media/i },
+    { id: 'content', title: /marketing|content|copywrit|social media|producer|video editor|videographer|photograph|post.?production|\bbrand|行銷|文案|社群|編輯|小編|communications|editor/i, re: /文案|行銷|社群|品牌|內容規劃|內容日曆|行銷企劃|copywriting|content calendar|social media/i },
     { id: 'sales', title: /account executive|\bsales\b|business development|業務|銷售|account manager/i, re: /業務|銷售|報價|客戶開發|訂單|收款|展會|業績|account executive|sales rep|\bquota\b|prospect/i },
     { id: 'engineering', title: /engineer|developer|\bsde\b|software dev|\bsre\b|devops|architect|工程師|程式|scientist/i, re: /軟體|工程師|程式碼|程式開發|後端|前端|系統設計|code review|\bapi\b/i },
     { id: 'logistics', title: /operations (manager|associate|specialist|lead|supervisor|analyst)|area manager|shift manager|supply chain|logistics|warehouse|fulfil+ment|transportation|倉儲|物流|營運|供應鏈|倉管|調度/i, re: /倉儲|物流|出貨|排班|盤點|供應鏈|warehouse|fulfil+ment cent|supply chain|shift (performance|plan)/i },
@@ -919,6 +925,234 @@
       patterns: [/onboard/i, /orientation/i, /new hire/i, /lifecycle/i, /offboard/i, /\bexits?\b/i, /到職|新人報到|離職手續|異動/]
     }),
     mod({
+      id: 'learning-program',
+      name: '培訓課程設計與排課',
+      families: ['learning'],
+      level: 'AUG',
+      levelWhy: '課綱、教材與排課表可以起草；教什麼、誰來教、誰要上要人決定。',
+      trigger: '要開一門新課、改舊課，或排下一期的培訓',
+      output: '課綱與教材草稿，以及排課與應訓名單',
+      inputs: ['要解決的工作問題與學員是誰', '現有教材、作業手冊或標準作業', '可用的講師、場地與時段'],
+      steps: [
+        ['AI 做', '把工作問題拆成學習目標，排出課綱與每段的練習'],
+        ['人核准', '學習目標與內容是否正確'],
+        ['AI 做', '起草教材與講師手冊，排出課表與應訓名單'],
+        ['人做', '上課、帶練習、簽到']
+      ],
+      accept: '每個學習目標都對得到一個練習或檢核；教材裡的步驟跟現行標準作業一致。',
+      risks: ['把舊版作業流程寫進教材', '課排滿了但沒有練習，學完不會做'],
+      patterns: [/training (programs?|sessions?|curricul\w*|materials?|content|plans?|classes)/i, /learning (programs?|solutions?|content|experiences?|paths?)/i, /curricul/i, /instructional/i, /facilitat\w* .{0,30}(training|sessions?|workshops?|classes)/i, /deliver\w* .{0,30}(training|sessions?|workshops?)/i, /onboarding (program|training)/i, /\btrain(s|ing)? (new |the )?(hires|associates|employees|staff|trainers)/i, /課程|教材|講師|排課|培訓計畫/]
+    }),
+    mod({
+      id: 'learning-measure',
+      name: '訓練成效與證照追蹤',
+      families: ['learning'],
+      level: 'AUG',
+      levelWhy: '數字彙整與名單可以交；成效怎麼解讀、要不要改課要人判斷。',
+      trigger: '一期課程結束，或證照與複訓快到期',
+      output: '訓練成效報告，以及到期與逾期名單',
+      inputs: ['上課紀錄、測驗與考核結果', '學員上課前後的工作表現數字', '證照與複訓的規定期限'],
+      steps: [
+        ['AI 做', '把上課、測驗與工作表現對在一起，算出完成率與前後差異'],
+        ['AI 做', '依期限列出快到期與已逾期的人'],
+        ['人核准', '成效怎麼解讀、要不要改課'],
+        ['人做', '通知主管與學員、安排補訓']
+      ],
+      accept: '每個數字都對得回上課紀錄；名單跟人事資料對得上。',
+      risks: ['把上完課當成學會了', '名單漏掉派遣或新到職的人'],
+      patterns: [/training (effectiveness|metrics|records|completion|compliance)/i, /learning (metrics|outcomes|effectiveness)/i, /certifications?/i, /(skills?|competenc\w*) (assessments?|matrix|gaps?)/i, /cross.?training/i, /measure\w* .{0,30}(training|learning|program) (impact|effectiveness)/i, /成效|證照|複訓|測驗/]
+    }),
+    mod({
+      id: 'facilities-maint',
+      name: '設備保養與維修工單',
+      families: ['facilities'],
+      level: 'AUG',
+      levelWhy: '排程、查手冊與紀錄可以交；動手修與停機要人做、要人核准。',
+      trigger: '到了定期保養，或設備故障報修',
+      output: '保養排程或排查步驟，以及維修紀錄',
+      inputs: ['設備清單、手冊與保養週期', '故障現象、警報與過去的維修紀錄', '備品庫存'],
+      steps: [
+        ['AI 做', '依保養週期排出工單；故障時依手冊列出由簡到難的排查步驟'],
+        ['人核准', '停機、換件與委外'],
+        ['人做', '現場檢查與維修，照安全規定上鎖掛牌'],
+        ['AI 做', '把維修過程與用掉的備品寫成紀錄，標出重複故障的設備']
+      ],
+      accept: '每張工單都有設備編號、做了什麼、用了哪些備品；沒有跳過安全步驟。',
+      risks: ['建議的步驟跳過上鎖掛牌等安全規定', '備品數字沒更新，下次要用才發現沒有'],
+      patterns: [/(preventa?tive|proactive|planned|corrective) maintenance/i, /\brepairs?\b/i, /fault (diagnosis|finding)/i, /(modifications|upgrades) to .{0,20}equipment/i, /equipment effectiveness/i, /\bpms?\b/i, /work orders?/i, /(repair|maintain|troubleshoot|inspect)\w* .{0,40}(equipment|machin\w*|systems?|vehicles?|aircraft|fleet|hvac|electrical|mechanical)/i, /spare parts/i, /technical manuals?/i, /\bcmms\b/i, /reliability/i, /root cause/i, /保養|維修|工單|備品|故障/]
+    }),
+    mod({
+      id: 'facilities-project',
+      name: '修繕與營建專案',
+      families: ['facilities'],
+      level: 'AUG',
+      levelWhy: '進度、預算與廠商資料可以彙整；設計變更、追加預算與驗收要人決定。',
+      trigger: '有修繕、裝修或營建工程要發包與追進度',
+      output: '工程進度與預算追蹤表，以及待決定事項',
+      inputs: ['工程範圍、圖說與合約', '廠商回報的進度、估價與變更單', '預算與核決權限'],
+      steps: [
+        ['AI 做', '把廠商回報對上計畫，標出延誤與超支'],
+        ['AI 做', '把變更單整理成金額、原因、對工期的影響'],
+        ['人核准', '設計變更、追加預算與驗收'],
+        ['人做', '現場會勘、跟廠商協調']
+      ],
+      accept: '表上每個金額都對得回合約或變更單；延誤項目都有原因或標成待確認。',
+      risks: ['把廠商的估價當成已核定的金額', '漏掉會影響營運的施工時段'],
+      patterns: [/construction/i, /(capital|facility|fit.?out|renovation|build.?out) projects?/i, /contractors?/i, /vendors? (management|performance)/i, /project (risks?|schedules?|budgets?|status)/i, /cost impacts?/i, /site (selection|development)/i, /修繕|營建|裝修|工程進度|發包/]
+    }),
+    mod({
+      id: 'security-investigate',
+      name: '損失與安全事件調查',
+      families: ['security'],
+      level: 'HUMAN-LEAD',
+      levelWhy: '調查牽涉到人的名譽與法律責任，由人主導；AI 只整理證據與時間線。',
+      trigger: '發現短少、竊盜、詐欺，或發生安全事件',
+      output: '事件時間線、證據清單與調查報告草稿',
+      inputs: ['事件通報與發現的經過', '系統紀錄、監視器時間點、出入紀錄', '公司的調查與通報規定'],
+      steps: [
+        ['AI 做', '把各來源的紀錄排成時間線，列出還缺的證據'],
+        ['人做', '調閱影像、訪談、現場查證'],
+        ['AI 做', '寫成調查報告草稿，分開「紀錄顯示的事」與「推測」'],
+        ['人核准', '結論、處置與是否報警']
+      ],
+      accept: '報告裡每一句都標得出來源；沒有證據的人名不出現在結論裡。',
+      risks: ['把嫌疑寫成事實', '調查內容外流給不相干的人'],
+      patterns: [/investigat/i, /loss prevention/i, /\bshrink/i, /\btheft\b/i, /fraud/i, /security incidents?/i, /(workplace )?violence/i, /record findings/i, /establish what occurred/i, /調查|竊盜|短少|詐欺|防損/]
+    }),
+    mod({
+      id: 'security-audit',
+      name: '安全稽核與防損檢查',
+      families: ['security'],
+      level: 'AUG',
+      levelWhy: '檢查表與結果彙整可以交；缺失判定與改善要人決定。',
+      trigger: '到了例行稽核，或要檢查據點是否符合安全標準',
+      output: '稽核檢查表、缺失清單與改善追蹤',
+      inputs: ['適用的安全標準與檢查項目', '現場檢查結果與照片', '上一次的缺失與改善狀況'],
+      steps: [
+        ['AI 做', '依標準排出檢查表，帶入上次未結的缺失'],
+        ['人做', '到現場檢查、拍照'],
+        ['AI 做', '彙整結果，列出缺失、負責人與期限'],
+        ['人核准', '缺失判定與改善期限']
+      ],
+      accept: '每一項缺失都有照片或紀錄、負責人與期限；上次的缺失都有結案或延續。',
+      risks: ['沒到現場就勾符合', '把上次的缺失漏掉'],
+      patterns: [/audits?/i, /security (standards|compliance|programs?|assessments?|surveys?)/i, /compliance of .{0,30}sites/i, /access control/i, /\bcctv\b/i, /risk assessments?/i, /\bsops?\b/i, /稽核|安全標準|門禁|監視/]
+    }),
+    mod({
+      id: 'econ-study',
+      name: '經濟研究與因果分析',
+      families: ['econ'],
+      level: 'AUG',
+      levelWhy: '資料整理、模型初稿與文獻可以交；研究設計與結論要經濟學家負責。',
+      trigger: '業務單位問一個政策、定價或投資的效果',
+      output: '研究設計、分析結果與限制的說明',
+      inputs: ['要回答的問題與要做的決定', '可用的資料與實驗紀錄', '已知的干擾因素與限制'],
+      steps: [
+        ['人做', '定研究問題與識別策略'],
+        ['AI 做', '整理資料、寫分析程式初稿、找相關文獻'],
+        ['人核准', '模型設定、假設與穩健性檢查'],
+        ['AI 做', '把結果寫成給非經濟背景讀者的說明，列出限制']
+      ],
+      accept: '每個數字都能重跑；說明裡分開「估計出來的效果」與「推論」，限制有寫。',
+      risks: ['把相關寫成因果', '只報對結論有利的模型設定'],
+      patterns: [/causal/i, /econometric/i, /economic (issues|models?|analysis|research)/i, /(statistical|structural) model/i, /a\/b (tests?|experiments?)/i, /\bexperiments?\b/i, /measurement (model|insights?)/i, /pricing/i, /forecast/i, /因果|計量|經濟分析|定價/]
+    }),
+    mod({
+      id: 'policy-monitor',
+      name: '政策與法案追蹤分析',
+      families: ['policy'],
+      level: 'AUG',
+      levelWhy: '追蹤與摘要可以交；對公司的影響判斷與立場要人決定。',
+      trigger: '有新法案、主管機關公告或政策討論',
+      output: '政策動態摘要，以及對公司的影響與建議選項',
+      inputs: ['要追蹤的議題與地區', '法案、公告或會議紀錄原文', '公司目前的立場與業務'],
+      steps: [
+        ['AI 做', '摘要新動態，每條附原文出處與日期'],
+        ['AI 做', '列出可能影響的業務與幾個因應選項'],
+        ['人核准', '影響判斷與公司立場'],
+        ['人做', '向主管簡報、決定下一步']
+      ],
+      accept: '每條動態都附得出官方出處；沒有把提案寫成已通過。',
+      risks: ['把草案或傳聞寫成已定案', '漏掉地方層級的規定'],
+      patterns: [/monitor\w* .{0,40}(polic\w*|legislat\w*|regulat\w*|political)/i, /policy (developments|proposals|issues|analysis)/i, /legislat/i, /regulatory (developments|affairs|landscape)/i, /\bpolicy\b/i, /法案|立法|政策動態|主管機關/]
+    }),
+    mod({
+      id: 'policy-engage',
+      name: '政府關係與對外倡議',
+      families: ['policy'],
+      level: 'HUMAN-LEAD',
+      levelWhy: '對外說法代表公司，關係要人經營；AI 只準備資料與草稿。',
+      trigger: '要跟政府機關、公協會或聯盟溝通公司的立場',
+      output: '立場說帖、會前簡報與利害關係人清單的草稿',
+      inputs: ['已核定的公司立場', '對象的背景與過去的往來', '要用的數字與案例（附出處）'],
+      steps: [
+        ['AI 做', '整理對象背景與過去往來，起草會前簡報'],
+        ['AI 做', '依已核定的立場起草說帖，每個數字附出處'],
+        ['人核准', '說帖內容與對外口徑'],
+        ['人做', '會面、溝通與後續追蹤']
+      ],
+      accept: '說帖沒有超出已核定的立場；每個數字都有出處。',
+      risks: ['替公司做出沒核定的承諾', '用了無法公開的內部數字'],
+      patterns: [/advocacy/i, /government (entities|officials|relations|affairs|agencies)/i, /stakeholders?/i, /trade associations?|think tanks?|coalitions?/i, /(develop|present|defend)\w* .{0,30}(positions?|studies|submissions?|comments)/i, /delegations?/i, /政府關係|倡議|公協會|說帖/]
+    }),
+    mod({
+      id: 'medical-onsite',
+      name: '駐廠醫護與藥品管理',
+      families: ['medical'],
+      level: 'HUMAN-LEAD',
+      levelWhy: '處置、給藥與調劑只能由有資格的人做；AI 只整理紀錄、庫存與轉介資料。',
+      trigger: '有人受傷或身體不適、要調劑處方，或要盤點醫療用品',
+      output: '處置與轉介紀錄草稿、醫療用品庫存清單',
+      inputs: ['醫護人員記下的事實與時間', '公司的急救與轉介流程', '醫療用品與藥品的庫存紀錄'],
+      steps: [
+        ['人做', '現場評估、急救、調劑或轉介'],
+        ['AI 做', '只依已記下的事實起草紀錄，不建議處置或劑量'],
+        ['人核准', '紀錄內容與是否需要通報'],
+        ['AI 做', '盤點庫存，列出快用完與快過期的品項']
+      ],
+      accept: '紀錄沒有加入沒做的處置；庫存數字對得回盤點結果。',
+      risks: ['AI 建議處置或劑量', '個人健康資料外流'],
+      patterns: [/first aid/i, /\bcpr\b|\baed\b/i, /emergency (response|care)/i, /referrals?/i, /medical (supply|supplies|records?|care)/i, /medications?/i, /prescriptions?/i, /dispens/i, /drug testing/i, /急救|轉介|醫療用品|調劑|藥品/]
+    }),
+    mod({
+      id: 'content-qa',
+      name: '內容與素材品質檢查',
+      families: ['content'],
+      level: 'AUG',
+      levelWhy: '逐項比對規範可以交；不確定的地方與上架與否要人判斷。',
+      trigger: '一批文案、圖片或商品資料要上架或交付前',
+      output: '品質檢查表：不符合規範的項目、位置與建議改法',
+      inputs: ['要檢查的內容或素材', '品牌規範、樣式指南與規格', '常見錯誤與過去的退件原因'],
+      steps: [
+        ['AI 做', '逐項對照規範與規格，列出不符合的地方與位置'],
+        ['人核准', '哪些真的要改、哪些可以放行'],
+        ['人做', '修正或退回給廠商'],
+        ['AI 做', '統計錯誤類型，更新常見錯誤清單']
+      ],
+      accept: '每個問題都指得出位置與違反哪一條規範；沒有把風格偏好寫成錯誤。',
+      risks: ['只看格式沒看事實正確性', '規範是舊版'],
+      patterns: [/quality (checks?|control|assurance|metrics|standards)/i, /style guides?/i, /brand (guidelines|style)/i, /(image|content|asset) (specifications|deliverables|quality)/i, /metadata/i, /\bqa\b/i, /品質檢查|校對|樣式指南|規格/]
+    }),
+    mod({
+      id: 'content-production',
+      name: '影音製作排程與交付',
+      families: ['content'],
+      level: 'AUG',
+      levelWhy: '排程、素材清單與交付檢查可以交；創意方向、預算與授權要人決定。',
+      trigger: '一支影片、一組照片或一檔活動要開拍或交付',
+      output: '製作時程、素材與授權清單，以及交付檢查表',
+      inputs: ['腳本或企劃、交期', '預算、人員與器材', '授權與合約條件、各平台的交付規格'],
+      steps: [
+        ['AI 做', '依交期排出製作時程，列出素材與授權清單'],
+        ['人核准', '創意方向、預算與授權'],
+        ['人做', '拍攝、剪輯與現場製作'],
+        ['AI 做', '依各平台規格做交付檢查，標出缺的檔案與授權']
+      ],
+      accept: '每個素材都查得到授權；交付檔案符合每個平台的規格。',
+      risks: ['用了沒有授權的音樂或畫面', '把預估交期當成承諾'],
+      patterns: [/production (schedules?|strategy|operations|timelines?)/i, /(video|photo|audio) (production|editing|shoots?)/i, /\bshoots?\b/i, /\bedit(ing)?\b .{0,30}(video|footage|spots?|trailers?)/i, /(visual|video|photo|creative|media|image) assets?/i, /rights (verification|clearance)/i, /deliver\w* .{0,40}(assets|files)/i, /trailers?|footage|post.?production/i, /拍攝|剪輯|製作時程|素材|授權/]
+    }),
+    mod({
       id: 'cross-notes',
       name: '週報與會議紀錄',
       families: ['general'],
@@ -1410,6 +1644,126 @@
       steps: ['Build the checklist from the procedure, each item with an owner and a date', 'Contract terms, access and exceptions', 'Draft the welcome or handover notices', 'Meet the person, hand over equipment and collect it back'],
       accept: 'Every item has an owner and a date; no access is granted or kept without approval.',
       risks: ['Access not removed after someone leaves', 'Notices stating terms that were not agreed']
+    },
+    'learning-program': {
+      name: 'Training design and scheduling',
+      levelWhy: 'Outlines, materials and schedules can be drafted; what to teach, who teaches and who attends need a human decision.',
+      trigger: 'a new course is needed, an old one changes, or the next round of training must be scheduled',
+      output: 'a course outline and draft materials, plus a schedule and attendee list',
+      inputs: ['The work problem to solve and who the learners are', 'Existing materials, manuals or standard work', 'Available trainers, rooms and time slots'],
+      steps: ['Break the work problem into learning objectives and lay out an outline with practice for each part', 'Whether the objectives and content are correct', 'Draft the materials and trainer guide, the timetable and the attendee list', 'Teach, run the practice and take attendance'],
+      accept: 'Every objective maps to a practice or check; steps in the materials match current standard work.',
+      risks: ['Teaching an outdated process', 'A full schedule with no practice, so people still cannot do the job']
+    },
+    'learning-measure': {
+      name: 'Training results and certification tracking',
+      levelWhy: 'Compiling numbers and lists can be handed off; reading the results and changing the course need human judgement.',
+      trigger: 'a course round ends, or certifications and refreshers are about to expire',
+      output: 'a training results report and a list of who is due or overdue',
+      inputs: ['Attendance, test and assessment results', 'Learners’ performance numbers before and after', 'Certification and refresher deadlines'],
+      steps: ['Join attendance, tests and performance, and calculate completion and before/after change', 'List who is about to expire and who is overdue', 'How to read the results and whether to change the course', 'Tell managers and learners and schedule make-up sessions'],
+      accept: 'Every number ties to attendance records; the list matches HR records.',
+      risks: ['Treating attendance as learning', 'Leaving agency staff or new starters off the list']
+    },
+    'facilities-maint': {
+      name: 'Equipment maintenance and work orders',
+      levelWhy: 'Scheduling, manual lookups and records can be handed off; hands-on repair and shutdowns are done and approved by people.',
+      trigger: 'preventive maintenance is due, or equipment breaks down',
+      output: 'a maintenance schedule or troubleshooting steps, plus the repair record',
+      inputs: ['Equipment list, manuals and maintenance intervals', 'Symptoms, alarms and past repair records', 'Spare parts stock'],
+      steps: ['Schedule work orders from the intervals; for a breakdown, list checks from simple to hard using the manual', 'Shutdowns, part replacements and outside contractors', 'Inspect and repair on site, following lockout/tagout rules', 'Record the repair and parts used, and flag equipment that keeps failing'],
+      accept: 'Every work order has an equipment ID, what was done and the parts used; no safety step was skipped.',
+      risks: ['Suggested steps that skip lockout/tagout or other safety rules', 'Spare part counts not updated, found missing next time']
+    },
+    'facilities-project': {
+      name: 'Renovation and construction projects',
+      levelWhy: 'Progress, budget and vendor data can be compiled; design changes, extra budget and sign-off need a human decision.',
+      trigger: 'a repair, fit-out or construction project needs tendering and tracking',
+      output: 'a progress and budget tracker plus a list of decisions needed',
+      inputs: ['Scope, drawings and contracts', 'Contractor progress reports, estimates and change orders', 'Budget and approval limits'],
+      steps: ['Compare contractor reports with the plan and flag delays and overruns', 'Summarise change orders: amount, reason, schedule impact', 'Design changes, extra budget and acceptance', 'Site walks and coordination with contractors'],
+      accept: 'Every amount ties to a contract or change order; every delay has a cause or is marked to be confirmed.',
+      risks: ['Treating a contractor estimate as an approved amount', 'Missing work windows that disrupt operations']
+    },
+    'security-investigate': {
+      name: 'Loss and security incident investigations',
+      levelWhy: 'Investigations affect people’s reputation and carry legal risk, so people lead; AI only organises evidence and timelines.',
+      trigger: 'a shortage, theft or fraud is found, or a security incident happens',
+      output: 'an incident timeline, an evidence list and a draft investigation report',
+      inputs: ['The incident report and how it was found', 'System logs, camera timestamps and access records', 'Company investigation and reporting rules'],
+      steps: ['Put records from every source on one timeline and list missing evidence', 'Review footage, interview people and check on site', 'Draft the report, separating what records show from what is inferred', 'The conclusion, the action, and whether to involve the police'],
+      accept: 'Every sentence in the report names its source; no one is named in the conclusion without evidence.',
+      risks: ['Writing suspicion as fact', 'Investigation details reaching people outside the case']
+    },
+    'security-audit': {
+      name: 'Security audits and loss prevention checks',
+      levelWhy: 'Checklists and compiling results can be handed off; deciding findings and fixes needs people.',
+      trigger: 'a routine audit is due, or a site must be checked against security standards',
+      output: 'an audit checklist, a list of findings and a fix tracker',
+      inputs: ['Applicable security standards and check items', 'On-site results and photos', 'Last audit’s findings and fix status'],
+      steps: ['Build the checklist from the standards and carry over open findings', 'Inspect the site and take photos', 'Compile results with each finding’s owner and due date', 'Which findings stand and the fix deadlines'],
+      accept: 'Every finding has a photo or record, an owner and a date; every old finding is closed or carried over.',
+      risks: ['Ticking items as compliant without going on site', 'Dropping last audit’s findings']
+    },
+    'econ-study': {
+      name: 'Economic research and causal analysis',
+      levelWhy: 'Data work, first-draft models and literature can be handed off; the research design and conclusions belong to the economist.',
+      trigger: 'the business asks what effect a policy, price or investment had or will have',
+      output: 'a research design, results and a note on limits',
+      inputs: ['The question and the decision it feeds', 'Available data and experiment records', 'Known confounders and constraints'],
+      steps: ['Set the research question and identification strategy', 'Prepare data, draft the analysis code and find related literature', 'Model specification, assumptions and robustness checks', 'Explain the results for non-economists and list the limits'],
+      accept: 'Every number can be rerun; the note separates estimated effects from inference and states the limits.',
+      risks: ['Writing correlation as causation', 'Reporting only the specifications that support the conclusion']
+    },
+    'policy-monitor': {
+      name: 'Policy and legislation tracking',
+      levelWhy: 'Tracking and summaries can be handed off; judging the impact and setting a position need people.',
+      trigger: 'a new bill, regulator notice or policy debate appears',
+      output: 'a summary of policy developments, their impact on the company and response options',
+      inputs: ['Issues and regions to track', 'The bill, notice or hearing record as published', 'The company’s current position and business'],
+      steps: ['Summarise new developments, each with the official source and date', 'List which parts of the business could be affected and a few response options', 'The impact assessment and the company position', 'Brief leadership and decide next steps'],
+      accept: 'Every item has an official source; no proposal is written as passed.',
+      risks: ['Writing a draft or rumour as final', 'Missing state or local rules']
+    },
+    'policy-engage': {
+      name: 'Government relations and advocacy',
+      levelWhy: 'What is said outside speaks for the company and relationships are built by people; AI only prepares material and drafts.',
+      trigger: 'you need to put the company’s position to government, trade groups or coalitions',
+      output: 'draft position papers, meeting briefs and a stakeholder list',
+      inputs: ['The approved company position', 'Background on the audience and past contact', 'Numbers and examples to use, with sources'],
+      steps: ['Compile background and past contact and draft the meeting brief', 'Draft the position paper from the approved position, each number with a source', 'The paper and the external messaging', 'Meet, engage and follow up'],
+      accept: 'The paper stays within the approved position; every number has a source.',
+      risks: ['Making commitments the company has not approved', 'Using internal numbers that cannot be made public']
+    },
+    'medical-onsite': {
+      name: 'Onsite medical care and medication supplies',
+      levelWhy: 'Treatment, giving medication and dispensing are done only by qualified people; AI only organises records, stock and referral details.',
+      trigger: 'someone is hurt or unwell, a prescription needs dispensing, or medical supplies need counting',
+      output: 'a draft treatment and referral record, and a medical supply stock list',
+      inputs: ['Facts and times the clinician wrote down', 'The company’s first aid and referral procedure', 'Stock records for supplies and medication'],
+      steps: ['Assess, give first aid, dispense or refer on site', 'Draft the record from the written facts only; do not suggest treatment or doses', 'The record and whether it must be reported', 'Count stock and list items running low or expiring'],
+      accept: 'The record adds no care that was not given; stock numbers match the count.',
+      risks: ['AI suggesting treatment or doses', 'Personal health information leaking']
+    },
+    'content-qa': {
+      name: 'Content and asset quality checks',
+      levelWhy: 'Checking item by item against guidelines can be handed off; borderline calls and whether to publish need people.',
+      trigger: 'a batch of copy, images or product data is about to go live or be delivered',
+      output: 'a quality checklist: items that break the guidelines, where, and how to fix them',
+      inputs: ['The content or assets to check', 'Brand guidelines, style guide and specs', 'Common errors and past rejection reasons'],
+      steps: ['Check each item against the guidelines and specs and list what fails and where', 'Which issues must be fixed and which can pass', 'Fix them or send them back to the vendor', 'Count error types and update the common-errors list'],
+      accept: 'Every issue points to a location and the rule it breaks; style preferences are not called errors.',
+      risks: ['Checking format but not factual accuracy', 'Using an outdated guideline']
+    },
+    'content-production': {
+      name: 'Video and photo production scheduling and delivery',
+      levelWhy: 'Schedules, asset lists and delivery checks can be handed off; creative direction, budget and rights need a human decision.',
+      trigger: 'a video, photo set or event is about to shoot or deliver',
+      output: 'a production schedule, an asset and rights list, and a delivery checklist',
+      inputs: ['Script or brief and the deadline', 'Budget, crew and equipment', 'Rights and contract terms, and each platform’s delivery specs'],
+      steps: ['Build the schedule from the deadline and list the assets and rights needed', 'Creative direction, budget and rights', 'Shoot, edit and produce', 'Check delivery against each platform’s specs and flag missing files or rights'],
+      accept: 'Every asset has cleared rights; delivered files meet each platform’s specs.',
+      risks: ['Using music or footage without rights', 'Treating an estimated delivery date as a commitment']
     },
     'cross-notes': {
       name: 'Weekly reports and meeting notes',
