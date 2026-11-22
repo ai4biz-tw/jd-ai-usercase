@@ -65,6 +65,15 @@ function assertShape(result) {
       assert.ok(item.markdown.indexOf(bullet) !== -1, item.name + ' 沒引用原文');
     });
     assert.ok(item.prompt.indexOf(item.name) !== -1);
+    // 指令要能直接用：每一項材料有空格、步驟與驗收都在、原句有附上。
+    assert.strictEqual(item.prompt.split('（貼在這裡）').length - 1, item.inputs.length, item.name);
+    item.inputs.forEach(function (input) { assert.ok(item.prompt.indexOf(input) !== -1, input); });
+    item.steps.forEach(function (step) { assert.ok(item.prompt.indexOf(step[1]) !== -1, step[1]); });
+    assert.ok(item.prompt.indexOf(item.accept) !== -1);
+    assert.ok(item.prompt.indexOf('待確認') !== -1);
+    assert.ok(!/（(AI 做|人核准|人做)）/.test(item.prompt), '指令裡不該出現給人看的角色標籤');
+    item.bullets.forEach(function (bullet) { assert.ok(item.prompt.indexOf(bullet) !== -1); });
+    assert.ok(item.markdown.indexOf(item.prompt) !== -1);
   });
   assert.ok(result.markdown.indexOf(result.title) === 2 || result.markdown.indexOf(result.title) > 0);
   assert.strictEqual(result.files.length, result.modules.length + (result.human.length ? 1 : 0));
@@ -305,6 +314,71 @@ familyCase('客服專員', [
 var wh = JD2MD.convert(['Warehouse Operations Associate', 'Responsibilities', '- Track inventory accuracy and replenish stock', '- Stand and walk for up to 12 hours', '- Medical, Dental, and Vision Coverage'].join(String.fromCharCode(10)));
 assert.ok(!wh.human.some(function (item) { return /Stand and walk|Medical, Dental/.test(item.text); }), '體力要求或福利被當成職責');
 assert.ok(!wh.modules.some(function (item) { return item.bullets.some(function (line) { return /Stand and walk|Medical, Dental/.test(line); }); }));
+
+// ---- 2026-11-23 第三輪：HRBP 模組、英文產出 ----
+var hrbp = familyCase('HR Business Partner', [
+  'Coach business leaders on performance feedback and underperformance',
+  'Handle employee relations matters and conduct workplace investigations',
+  'Analyze engagement survey results and attrition trends',
+  'Lead talent reviews and succession planning',
+  'Partner with onboarding teams on new hire orientation'
+], 'hr', [/主管諮詢/, /員工關係/, /員工意見/, /人才盤點/, /到職/], /招募與面試|薪資與出勤/);
+assert.strictEqual(findModule(hrbp, /員工關係/).level, 'HUMAN-LEAD');
+
+// 每個模組都有英文版，而且欄位數量對得上中文版。
+// 原本 23 個模組的英文版下一個 PR 補上，補上前英文產出會退回中文。
+var PENDING_EN = ['fin-plan', 'fin-close', 'fin-report', 'fin-serve', 'fin-research', 'sales-q2c', 'sales-prospect', 'sales-forecast', 'care-assess', 'care-meds', 'care-chart', 'care-handover', 'care-edu', 'eng-build', 'eng-review', 'eng-design', 'content-draft', 'content-cal', 'hr-hire', 'hr-pay', 'ops-buy', 'ops-doc'];
+JD2MD.MODULES.forEach(function (item) {
+  var e = JD2MD.EN[item.id];
+  if (PENDING_EN.indexOf(item.id) !== -1) { assert.ok(!e); return; }
+  assert.ok(e, '缺英文版：' + item.id);
+  ['name', 'levelWhy', 'trigger', 'output', 'accept'].forEach(function (key) {
+    assert.ok(typeof e[key] === 'string' && e[key].length > 3, item.id + '.' + key);
+  });
+  assert.strictEqual(e.inputs.length, item.inputs.length, item.id + ' inputs');
+  assert.strictEqual(e.steps.length, item.steps.length, item.id + ' steps');
+  assert.strictEqual(e.risks.length, item.risks.length, item.id + ' risks');
+  assert.ok(!/的時候$/.test(e.trigger) && !/^when /i.test(e.trigger), item.id + ' trigger');
+});
+assert.strictEqual(Object.keys(JD2MD.EN).length + PENDING_EN.length, JD2MD.MODULES.length, '英文表有多出來的 id');
+
+// 英文產出：除了引用的 JD 原句，不能有中文。
+var CJK = /[㐀-鿿　-〿＀-￯]/;
+function assertEnglish(out) {
+  assert.strictEqual(out.lang, 'en');
+  out.modules.forEach(function (item) {
+    var bare = item.markdown.split('\n').filter(function (line) { return !/“.*”/.test(line); }).join('\n');
+    assert.ok(!CJK.test(bare), item.id + ' 英文版有中文：' + (bare.match(new RegExp('.{0,30}' + CJK.source + '.{0,30}')) || [''])[0]);
+    assert.ok(item.prompt.indexOf('(paste here)') !== -1, item.id);
+    assert.ok(/AI does|Human approves|Human does/.test(item.markdown), item.id);
+    ['## What this module does', '## Steps', '## Prompt for your AI'].forEach(function (h) { assert.ok(item.markdown.indexOf(h) !== -1, item.id + h); });
+    item.bullets.forEach(function (bullet) { assert.ok(item.prompt.indexOf(bullet) !== -1); });
+    assert.strictEqual(item.prompt.split('(paste here)').length - 1, item.inputs.length, item.id);
+    assert.ok(/^\d{2}-[A-Za-z0-9-]+\.md$/.test(fileNameOf(out, item)), fileNameOf(out, item));
+  });
+  out.human.forEach(function (item) { assert.ok(!CJK.test(item.reason), item.reason); });
+  assert.ok(!CJK.test(out.markdown.split('\n').filter(function (line) { return !/“.*”/.test(line) && line.indexOf('# ') !== 0; }).join('\n')));
+}
+function fileNameOf(out, item) {
+  return out.files[out.modules.indexOf(item)].filename;
+}
+[
+  ['Customer Support Specialist', ['Respond to customer tickets within the SLA', 'Escalate product issues to the engineering team', 'Write help center articles for recurring questions']],
+  ['HR Business Partner', ['Coach business leaders on performance feedback', 'Handle employee relations matters and conduct workplace investigations', 'Analyze engagement survey results', 'Lead talent reviews', 'Own onboarding for new hires']],
+  ['Corporate Counsel', ['Draft, review and negotiate commercial agreements', 'Advise business teams on regulatory compliance']]
+].forEach(function (c) {
+  var text = [c[0], 'Responsibilities'].concat(c[1].map(function (line) { return '- ' + line; })).join('\n');
+  var en = JD2MD.convert(text, { lang: 'en' });
+  assert.ok(en.ok, en.error);
+  assert.ok(en.modules.length >= 2, c[0]);
+  assertEnglish(en);
+  // 同一份 JD，中英文收出同樣的模組。
+  var zh = JD2MD.convert(text);
+  assert.deepStrictEqual(en.modules.map(function (m) { return m.id; }), zh.modules.map(function (m) { return m.id; }), c[0]);
+  assert.strictEqual(zh.lang, 'zh');
+});
+var enErr = JD2MD.convert('', { lang: 'en' });
+assert.ok(!enErr.ok && !CJK.test(enErr.error));
 
 // 5. 職責小標底下沒有條列符號（Amazon 的寫法，或貼上時符號掉了）。
 var plain = JD2MD.parseJD([
