@@ -6,15 +6,24 @@
   var MAX_CHARS = 12000;
   var MAX_MODULES = 6;
 
+  // title：職稱比對，命中就只用這一類。re：職稱看不出來時，才用職責內文數關鍵字。
+  // 內文不收 forecast、budget、financial 這類字：工程與業務的 JD 也常出現（error budget、sales forecast）。
   var FAMILIES = [
-    { id: 'clinical', re: /護理|護士|病房|給藥|病歷|生命徵象|病患|護理師|nurse|nursing/i },
-    { id: 'sales', re: /業務|銷售|報價|客戶開發|訂單|收款|展會|業績|account executive|sales rep/i },
-    { id: 'finance', re: /財務|會計|預算|fp&a|月結|帳務|資金|財報|finance|budget|forecast|variance|financial/i },
-    { id: 'engineering', re: /軟體|工程師|程式碼|程式開發|後端|前端|系統設計|code review|\bapi\b/i },
-    { id: 'content', re: /文案|行銷|社群|品牌|內容規劃|內容日曆|行銷企劃/ },
-    { id: 'hr', re: /人資|招募|薪資|面試|任用/ },
-    { id: 'ops', re: /行政|採購|倉儲|總務|庶務|公文|用印/ }
+    { id: 'clinical', title: /護理|護士|\bnurs(e|ing)\b/i, re: /護理|護士|病房|給藥|病歷|生命徵象|病患|護理師|\bnurs(e|ing)\b/i },
+    { id: 'finance', title: /financ|accountant|accounting|財務|會計|fp&a|controller|treasury|\btax\b|\baudit|出納|payable|receivable/i, re: /財務|會計|預算|fp&a|月結|帳務|資金|財報|month-end|general ledger|journal entr|reconciliation/i },
+    { id: 'hr', title: /recruit|talent acquisition|human resources|\bhr\b|people (ops|partner|operations)|人資|招募|薪酬|payroll/i, re: /人資|招募|薪資|面試|任用|recruit|candidate|payroll/i },
+    { id: 'content', title: /marketing|content|copywrit|social media|\bbrand|行銷|文案|社群|編輯|小編|communications/i, re: /文案|行銷|社群|品牌|內容規劃|內容日曆|行銷企劃|copywriting|content calendar|social media/i },
+    { id: 'sales', title: /account executive|\bsales\b|business development|業務|銷售|account manager/i, re: /業務|銷售|報價|客戶開發|訂單|收款|展會|業績|account executive|sales rep|\bquota\b|prospect/i },
+    { id: 'engineering', title: /engineer|developer|\bsde\b|software dev|\bsre\b|devops|architect|工程師|程式|scientist/i, re: /軟體|工程師|程式碼|程式開發|後端|前端|系統設計|code review|\bapi\b/i },
+    { id: 'ops', title: /行政|採購|總務|procurement|office manager|administrative|purchasing/i, re: /行政|採購|倉儲|總務|庶務|公文|用印|procurement|purchase order/i }
   ];
+
+  function titleFamily(title) {
+    for (var i = 0; i < FAMILIES.length; i += 1) {
+      if (FAMILIES[i].title.test(title)) return FAMILIES[i].id;
+    }
+    return '';
+  }
 
   function mod(spec) {
     spec.cross = !!spec.cross;
@@ -134,7 +143,7 @@
       ],
       accept: '報價數字沒有超出已給的價目與權限；每筆未結款都有狀態。',
       risks: ['折扣超過權限仍寫進報價', '把估計交期寫成承諾'],
-      patterns: [/報價/, /訂單/, /收款/, /應收/, /對帳/, /請款/]
+      patterns: [/報價/, /訂單/, /收款/, /應收/, /對帳/, /請款/, /\bquot(e|es|ation|ations)\b/i, /\bproposals?\b/i, /\bcontracts?\b/i, /\binvoic/i, /order (processing|management|fulfil)/i, /\bpricing\b/i]
     }),
     mod({
       id: 'sales-prospect',
@@ -282,7 +291,7 @@
       ],
       accept: '變更有測試或明確的手動確認；沒有順手改任務外的地方。',
       risks: ['測試本身是錯的卻被當成通過', '把秘密寫進程式或提示'],
-      patterns: [/程式開發/, /軟體開發/, /撰寫程式/, /程式碼/, /實作功能/, /開發功能/, /\bapi\b/i, /後端/, /前端開發/, /修 bug/i, /缺陷/]
+      patterns: [/程式開發/, /軟體開發/, /撰寫程式/, /程式碼/, /實作功能/, /開發功能/, /\bapi\b/i, /後端/, /前端開發/, /修 bug/i, /缺陷/, /\b(build|develop|implement|ship|write|maintain|deliver)\w*\b.{0,60}\b(feature|service|system|software|code|application|pipeline|platform|tool|infrastructure|api|model)s?\b/i, /debug|troubleshoot|bug ?fix|fix(ing)? bugs/i]
     }),
     mod({
       id: 'eng-review',
@@ -299,7 +308,7 @@
       ],
       accept: '每一點意見都指得到具體變更；沒有把風格偏好說成缺陷。',
       risks: ['只看摘要、沒看實際變更就建議合併'],
-      patterns: [/code review/i, /程式審查/, /撰寫測試/, /寫測試/, /單元測試/, /測試案例/]
+      patterns: [/code review/i, /程式審查/, /撰寫測試/, /寫測試/, /單元測試/, /測試案例/, /code reviews?/i, /\b(unit|integration|automated|end-to-end|e2e)\b.{0,12}tests?/i, /test (coverage|plans?|cases?|automation)/i, /writ\w+ tests/i]
     }),
     mod({
       id: 'eng-design',
@@ -316,7 +325,7 @@
       ],
       accept: '對照裡的每個限制都來自分享的材料，沒有補上沒提過的容量數字。',
       risks: ['把其中一個選項寫成已經決定'],
-      patterns: [/系統設計/, /系統架構/, /架構設計/, /技術選型/]
+      patterns: [/系統設計/, /系統架構/, /架構設計/, /技術選型/, /system design/i, /\barchitect(ure|ing)?\b/i, /technical design/i, /design docs?/i]
     }),
     mod({
       id: 'content-draft',
@@ -334,7 +343,7 @@
       ],
       accept: '草稿裡的事實都回得去來源；沒有來源的句子被標成待確認。',
       risks: ['補上沒核實的成效數字', '用草稿直接發布'],
-      patterns: [/文案/, /貼文/, /腳本/, /社群文/, /內容起草/]
+      patterns: [/文案/, /貼文/, /腳本/, /社群文/, /內容起草/, /\bcopy(writing)?\b/i, /\bblogs?\b/i, /social (media )?posts?/i, /newsletter/i, /(write|draft|create|produce)\w*.{0,40}\b(content|articles?|scripts?|messaging|case studies)\b/i, /content creation/i]
     }),
     mod({
       id: 'content-cal',
@@ -352,7 +361,7 @@
       ],
       accept: '表上的每一格不是空的就是有來源；沒有活動被填上去充數。',
       risks: ['為了填滿日曆而發明沒有的活動'],
-      patterns: [/檔期/, /內容日曆/, /內容規劃/, /內容排程/, /編輯日曆/]
+      patterns: [/檔期/, /內容日曆/, /內容規劃/, /內容排程/, /編輯日曆/, /(content|editorial|campaign|marketing) (calendar|plans?|roadmap)/i]
     }),
     mod({
       id: 'hr-hire',
@@ -371,7 +380,7 @@
       ],
       accept: '對外文字沒有出現還沒核准的薪資或職等。',
       risks: ['把希望條件寫成已經承諾的待遇'],
-      patterns: [/招募/, /面試/, /刊登職缺/, /履歷/, /任用/, /邀約/]
+      patterns: [/招募/, /面試/, /刊登職缺/, /履歷/, /任用/, /邀約/, /recruit/i, /\bsourc(e|ing)\b/i, /interview/i, /candidates?\b/i, /job (posting|description)s?/i, /\bhiring\b/i]
     }),
     mod({
       id: 'hr-pay',
@@ -389,7 +398,7 @@
       ],
       accept: '表上沒有原始紀錄的時數沒有被補零充數；金額有人簽過才算出完成。',
       risks: ['缺卡被自動補成正常出勤'],
-      patterns: [/薪資/, /出勤/, /勞健保/, /計薪/, /發薪/]
+      patterns: [/薪資/, /出勤/, /勞健保/, /計薪/, /發薪/, /payroll/i, /attendance/i, /benefits administration/i]
     }),
     mod({
       id: 'ops-buy',
@@ -407,7 +416,7 @@
       ],
       accept: '表上的價格都來自己收到的報價；沒有報價的欄位是空的。',
       risks: ['補上一間沒有報過價的廠商'],
-      patterns: [/採購/, /請購/, /比價/, /供應商/, /庶務用品/]
+      patterns: [/採購/, /請購/, /比價/, /供應商/, /庶務用品/, /procure/i, /purchas(e|ing) orders?/i, /\b(vendor|supplier)s?\b/i, /\brf[pq]s?\b/i]
     }),
     mod({
       id: 'ops-doc',
@@ -444,7 +453,7 @@
       ],
       accept: '每一條決定都對得回筆記；沒討論到的事項沒有被寫進去。',
       risks: ['把還沒決定的事寫成已決議'],
-      patterns: [/會議紀錄/, /週報/, /例行週報/]
+      patterns: [/會議紀錄/, /週報/, /例行週報/, /meeting (notes|minutes)/i, /(weekly|status|progress) reports?/i]
     })
   ];
 
@@ -466,50 +475,106 @@
     }
   ];
 
-  var BULLET = /^([-•*・]|\d{1,2}\s*[.、．)）]|[（(]\d{1,2}[)）]|[一二三四五六七八九十]{1,2}\s*[、.．])\s*/;
-  var HEAD_RESP = /^(responsibilities|responsibility|what you'?ll do|職責|工作內容|工作職責|職務說明|職務內容)\s*[:：]?$/i;
-  var HEAD_QUAL = /^(qualifications|requirements|minimum qualifications|preferred qualifications|資格|條件|條件要求|應徵條件|任職要求|必要條件|加分條件)\s*[:：]?$/i;
-  var SOFT = /關係|客情|情緒|跨部門|溝通|協調|合作|配合|態度|抗壓|學習意願|責任感|其他交辦|主管交辦|團隊合作|接待|訪客|總機|適應|輔導|關懷/;
+  var BULLET = /^([-•*・●▪◦–]|\d{1,2}\s*[.、．)）]|[（(]\d{1,2}[)）]|[一二三四五六七八九十]{1,2}\s*[、.．])\s*/;
+  // 小標分三種：職責、條件、其他（福利、公司介紹、應徵流程）。只有職責底下的條列才算工作內容。
+  var HEAD_RESP = /responsibilit|what you(?:'ll| will) (?:do|be doing|work on|own|achieve)|^you will\b|^you'll\b|a typical day|typical day|a day in the life|in this role|key duties|^duties|your (?:role|impact|mission|responsibilities)|the difference you will make|about the (?:role|job|position)|^the role|job description|what you(?:'ll| will) be|職責|工作內容|職務說明|職務內容|工作項目|主要工作|工作說明|你將|你會|妳將|你的任務|你的工作/i;
+  var HEAD_QUAL = /qualif|requirement|what you(?:'ll| will) (?:bring|need)|what you bring|you have|about you|who you are|your (?:expertise|skills|background|experience|profile)|love to hear|looking for|what we seek|must.?haves?|nice.?to.?haves?|preferred|added plus|helpful experience|exceptional candidates|minimum|essential|desired|bonus|條件|資格|加分|必備|正在找|擁有以下|技能|具備|我們希望你|應徵條件|任職要求/i;
+  var HEAD_OTHER = /benefit|perks|compensation|salary|\bpay\b|supports?\b|accommodat|why (?:you|join|this)|about (?:us|the team|the company|gitlab|figma|airbnb)|how we|our (?:team|values|culture|commitment)|equal opportunity|location|examples of our projects|待遇|福利|薪資|注意事項|應徵流程|合作方式|為什麼|關於我們|公司介紹|面試流程/i;
+  var SOFT = /關係|客情|情緒|跨部門|溝通|協調|合作|配合|態度|抗壓|學習意願|責任感|其他交辦|主管交辦|團隊合作|接待|訪客|總機|適應|輔導|關懷|\bcollaborat|\bpartner with\b|cross-functional|\bmentor|build (?:strong )?relationships|stakeholder/i;
+
+  function cleanHeading(line) {
+    return String(line)
+      .replace(/[‘’]/g, "'")
+      .replace(/[“”]/g, '"')
+      .replace(/^[^A-Za-z0-9一-鿿]+/, '')
+      .replace(/[\s:：.…。!！?？\]】)）]+$/, '')
+      .trim();
+  }
+
+  function headingKind(line) {
+    var text = cleanHeading(line);
+    if (!text || text.length > 70) return '';
+    // 以句號結尾的是句子，不是小標（例如「You will build the billing service.」）。
+    if (/[.。]\s*$/.test(String(line))) return 'unknown';
+    // 順序有意義：「what you'll bring」同時像職責也像條件，先判條件與其他。
+    if (HEAD_OTHER.test(text)) return 'other';
+    if (HEAD_QUAL.test(text)) return 'qual';
+    if (HEAD_RESP.test(text)) return 'resp';
+    return 'unknown';
+  }
+
+  // 沒有條列符號的長段落拆成句子，免得整段被當成一條職責。
+  function splitProse(line) {
+    if (line.length <= 220) return [line];
+    var parts = line.match(/[^.。!?！？]+(?:[.。!?！？]+|$)/g) || [line];
+    var out = [];
+    parts.forEach(function (part) {
+      part = part.trim();
+      if (!part) return;
+      if (out.length && (part.length < 25 || out[out.length - 1].length < 25)) out[out.length - 1] += ' ' + part;
+      else out.push(part);
+    });
+    return out;
+  }
 
   function parseJD(text) {
     var lines = String(text || '').replace(/\r/g, '').split('\n').map(function (line) {
       return line.trim();
     }).filter(Boolean);
     var title = (lines[0] || '未命名職位').replace(/^(職稱|職位|job title)\s*[:：]\s*/i, '');
-    if (HEAD_RESP.test(title) || HEAD_QUAL.test(title)) title = '未命名職位';
+    if (headingKind(title) === 'resp' || headingKind(title) === 'qual') title = '未命名職位';
     title = title.replace(/^#+\s*/, '').slice(0, 80);
 
-    var resp = [];
-    var inResp = false;
-    var seenResp = false;
-    lines.forEach(function (line) {
-      if (HEAD_RESP.test(line)) {
-        inResp = true;
-        seenResp = true;
+    // 先把每一條條列標上它所屬小標的種類。
+    var items = [];
+    var kind = 'unknown';
+    var sawResp = false;
+    lines.forEach(function (line, index) {
+      if (index === 0) return;
+      if (BULLET.test(line)) {
+        var item = line.replace(BULLET, '').trim();
+        if (item) items.push({ text: item, kind: kind });
         return;
       }
-      if (HEAD_QUAL.test(line)) {
-        inResp = false;
+      var next = lines[index + 1] || '';
+      var k = headingKind(line);
+      if (k === 'resp' || k === 'qual' || k === 'other') {
+        kind = k;
+        if (k === 'resp') sawResp = true;
         return;
       }
-      if (!BULLET.test(line)) return;
-      if (seenResp && !inResp) return;
-      var item = line.replace(BULLET, '').trim();
-      if (item) resp.push(item);
+      // 認不得、但後面緊跟條列的短行，當成不明小標。
+      if (k === 'unknown' && BULLET.test(next) && line.length <= 40) {
+        kind = 'unknown';
+        return;
+      }
+      // 職責小標底下沒有條列符號的行也算職責。有的 JD 本來就不用條列，有的是貼上時符號掉了。
+      if (kind === 'resp' && line.length >= 12 && !/^null$/i.test(line)) {
+        splitProse(line).forEach(function (part) {
+          items.push({ text: part, kind: 'resp' });
+        });
+      }
     });
 
-    if (!resp.length) {
+    var resp = items.filter(function (item) {
+      // 有認得的職責小標：只收它底下的。沒有：收不是條件也不是福利的條列。
+      return sawResp ? item.kind === 'resp' : item.kind === 'unknown';
+    }).map(function (item) { return item.text; });
+
+    if (!resp.length && !items.length) {
       resp = lines.slice(1).filter(function (line) {
-        return line.length > 18 && !HEAD_RESP.test(line) && !HEAD_QUAL.test(line) && !BULLET.test(line);
+        return line.length > 18 && headingKind(line) === 'unknown' || line.length > 70;
       }).slice(0, 10);
     }
-    return { title: title || '未命名職位', responsibilities: resp };
+    return { title: title || '未命名職位', responsibilities: resp, sawResp: sawResp };
   }
 
   function isQualification(line) {
     var skill = /學歷|科系|執照|證照|年以上|years of|\d\+\s*years|熟悉|精通|加分|優先考慮|本科|碩士|學士|不拘/i.test(line);
     var work = /撰寫|製作|產出|負責|執行|追蹤|紀錄|記錄|評估|給藥|報價|開發|分析|預算|預測|交班|衛教|採購|面試|歸檔/.test(line);
-    return skill && !work;
+    if (skill && !work) return true;
+    if (/[一-鿿]/.test(line)) return false;
+    return /^(\d\+?\s*years|at least \d|bachelor|master|ph\.?d|degree|experience (with|in|working)|proven|proficien|fluen|familiarity|knowledge of|strong (understanding|knowledge|communication)|excellent|ability to|track record|you (have|are)|comfortable)/i.test(line);
   }
 
   function familyHits(text) {
@@ -693,8 +758,10 @@
       return emptyResult(parsed.title, '找不到工作內容。請用條列寫出職責，或把「工作內容」小標留著。');
     }
 
-    var familyText = parsed.title + '\n' + parsed.responsibilities.join('\n') + '\n' + raw.slice(0, 500);
-    var families = pickFamilies(familyHits(familyText));
+    var byTitle = titleFamily(parsed.title);
+    var families = byTitle
+      ? [byTitle]
+      : pickFamilies(familyHits(parsed.responsibilities.join('\n')).filter(function (item) { return item.count >= 2; }));
     var familyModules = MODULES.filter(function (item) {
       return !item.cross && item.families.some(function (family) { return families.indexOf(family) !== -1; });
     });
