@@ -226,14 +226,85 @@ assert.deepStrictEqual(ae2.families, ['sales']);
 assertNo(ae2, /財務|預算|關帳|工程|程式/);
 
 // 4. 沒有模組可配的職類，老實回報沒有，不硬配。
-var support = JD2MD.convert([
-  'Customer Support Specialist',
+var econ = JD2MD.convert([
+  'Senior Economist',
   'Responsibilities',
-  '- Respond to customer tickets within the SLA',
-  '- Escalate product issues to the engineering team'
+  '- Build causal models of marketplace pricing',
+  '- Advise leadership on long-run demand'
 ].join('\n'));
-assert.strictEqual(support.modules.length, 0);
-assert.ok(support.error);
+assert.strictEqual(econ.modules.length, 0);
+assert.ok(econ.error);
+
+// ---- 2026-11-22 第二輪：替缺模組的職類手寫模組，每個職類鎖一個案例 ----
+function familyCase(title, lines, family, names, never) {
+  var out = JD2MD.convert([title, 'Responsibilities'].concat(lines.map(function (line) { return '- ' + line; })).join('\n'));
+  assertShape(out);
+  assert.deepStrictEqual(out.families, [family], title);
+  names.forEach(function (name) { findModule(out, name); });
+  if (never) assertNo(out, never);
+  return out;
+}
+
+familyCase('Customer Support Specialist', [
+  'Respond to customer tickets within the SLA',
+  'Escalate product issues to the engineering team',
+  'Write help center articles for recurring questions'
+], 'support', [/客戶問題回覆/, /案件升級/, /知識庫/], /程式|財務/);
+
+familyCase('Operations Manager, Fulfillment Center', [
+  'Analyse shift performance against business objectives and report KPIs',
+  'Lead process improvement projects and find root causes of defects',
+  'Own labor planning and staffing for the night shift'
+], 'logistics', [/營運指標/, /流程改善/, /排班/], /招募|程式/);
+
+// 職稱有 Designer 就是設計，不因為內文提到 engineers 變成工程。
+familyCase('Product Designer', [
+  'Create wireframes and prototypes and hand off specs to engineers',
+  'Run usability testing and synthesize user research',
+  'Contribute to the design system and component library'
+], 'design', [/設計稿/, /使用者研究/, /設計規範/], /功能實作|程式審查/);
+
+familyCase('Senior Technical Program Manager', [
+  'Write requirements and maintain the product roadmap',
+  'Track milestones, risks and dependencies and send weekly status reports'
+], 'product', [/需求文件/, /專案進度/]);
+
+familyCase('Business Intelligence Analyst', [
+  'Analyze large datasets with SQL to find insights',
+  'Build dashboards and automate weekly reporting'
+], 'data', [/資料分析/, /報表與儀表板/], /管理報告/);
+
+var legal = familyCase('Corporate Counsel', [
+  'Draft, review and negotiate commercial agreements',
+  'Advise business teams on regulatory compliance and privacy'
+], 'legal', [/合約審閱/, /法規研究/]);
+// 法務的事由人主導。
+legal.modules.forEach(function (item) { assert.strictEqual(item.level, 'HUMAN-LEAD', item.name); });
+
+familyCase('IT Support Technician', [
+  'Troubleshoot hardware and software issues for employees',
+  'Install and configure laptops and network equipment'
+], 'it', [/報修與故障排除/]);
+
+familyCase('EHS Specialist', [
+  'Conduct safety inspections and incident investigations',
+  'Deliver safety training and track regulatory requirements'
+], 'safety', [/安全巡檢/, /安全訓練/]);
+
+familyCase('會計專員', [
+  '處理應付帳款與廠商請款',
+  '配合會計師查帳並準備稅務申報資料'
+], 'finance', [/應付、應收與請款/, /稽核、內控與稅務/]);
+
+familyCase('客服專員', [
+  '回覆客戶來電與來信，處理退換貨',
+  '整理常見問題並更新知識庫'
+], 'support', [/客戶問題回覆/, /知識庫/]);
+
+// 體力要求與福利不是職責。
+var wh = JD2MD.convert(['Warehouse Operations Associate', 'Responsibilities', '- Track inventory accuracy and replenish stock', '- Stand and walk for up to 12 hours', '- Medical, Dental, and Vision Coverage'].join(String.fromCharCode(10)));
+assert.ok(!wh.human.some(function (item) { return /Stand and walk|Medical, Dental/.test(item.text); }), '體力要求或福利被當成職責');
+assert.ok(!wh.modules.some(function (item) { return item.bullets.some(function (line) { return /Stand and walk|Medical, Dental/.test(line); }); }));
 
 // 5. 職責小標底下沒有條列符號（Amazon 的寫法，或貼上時符號掉了）。
 var plain = JD2MD.parseJD([

@@ -8,14 +8,23 @@
 
   // title：職稱比對，命中就只用這一類。re：職稱看不出來時，才用職責內文數關鍵字。
   // 內文不收 forecast、budget、financial 這類字：工程與業務的 JD 也常出現（error budget、sales forecast）。
+  // 順序有意義：前面的先比。「Product Designer」要先被 design 接走，「Safety Engineer」要先被 safety 接走。
   var FAMILIES = [
     { id: 'clinical', title: /護理|護士|\bnurs(e|ing)\b/i, re: /護理|護士|病房|給藥|病歷|生命徵象|病患|護理師|\bnurs(e|ing)\b/i },
-    { id: 'finance', title: /financ|accountant|accounting|財務|會計|fp&a|controller|treasury|\btax\b|\baudit|出納|payable|receivable/i, re: /財務|會計|預算|fp&a|月結|帳務|資金|財報|month-end|general ledger|journal entr|reconciliation/i },
-    { id: 'hr', title: /recruit|talent acquisition|human resources|\bhr\b|people (ops|partner|operations)|人資|招募|薪酬|payroll/i, re: /人資|招募|薪資|面試|任用|recruit|candidate|payroll/i },
-    { id: 'content', title: /marketing|content|copywrit|social media|\bbrand|行銷|文案|社群|編輯|小編|communications/i, re: /文案|行銷|社群|品牌|內容規劃|內容日曆|行銷企劃|copywriting|content calendar|social media/i },
+    { id: 'design', title: /designer|\bux\b|\bui\b|設計師|art director|visual design|美術/i, re: /設計稿|視覺設計|介面設計|wireframe|prototyp|design system|user research/i },
+    { id: 'legal', title: /counsel|\blegal\b|paralegal|attorney|lawyer|法務|律師/i, re: /合約|契約|法規|法遵|訴訟|\bcontracts?\b|legal (advice|research|risk)|litigation/i },
+    { id: 'support', title: /customer (service|support|care|experience)|(technical|customer) care|support (specialist|associate|agent|representative|advisor)|客服|客戶服務|help ?desk agent/i, re: /客服|客訴|來電|退換貨|customer (inquir|contact|complaint)|support tickets?/i },
+    { id: 'safety', title: /safety|\behs\b|\bwhs\b|\bhse\b|職安|環安|工安/i, re: /職安|工安|巡檢|職災|safety (audit|inspection|training)|incident investigation|hazard/i },
+    { id: 'it', title: /it support|it technician|it engineer|desktop support|service desk|data cent(er|re) (technician|engineer|operations)|資訊人員|\bmis\b|網管/i, re: /故障排除|報修|資訊設備|help ?desk|break.?fix|cabling|technical support/i },
+    { id: 'finance', title: /financ|accountant|accounting|財務|會計|fp&a|controller|treasury|\btax\b|internal audit|auditor\b|出納|payable|receivable/i, re: /財務|會計|預算|fp&a|月結|帳務|資金|財報|month-end|general ledger|journal entr|reconciliation/i },
+    { id: 'data', title: /data analyst|business intelligence|\bbi\b|analytics|business analyst|data scientist|資料分析|數據分析|商業分析/i, re: /資料分析|數據分析|儀表板|\bsql\b|dashboards?|data (pipeline|warehouse|model)/i },
+    { id: 'hr', title: /recruit|candidate experience|talent acquisition|human resources|\bhr\b|people (ops|partner|operations)|人資|招募|薪酬|payroll/i, re: /人資|招募|薪資|面試|任用|recruiting|candidates|payroll/i },
+    { id: 'product', title: /product (manager|mgr)|program (manager|mgr)|project (manager|mgr)|product owner|產品經理|專案經理|\bpm\b|\btpm\b|\bpmt\b|專案管理/i, re: /產品規劃|需求文件|專案進度|roadmap|\bprds?\b|user stories|project plans?/i },
+    { id: 'content', title: /marketing|content|copywrit|social media|\bbrand|行銷|文案|社群|編輯|小編|communications|editor/i, re: /文案|行銷|社群|品牌|內容規劃|內容日曆|行銷企劃|copywriting|content calendar|social media/i },
     { id: 'sales', title: /account executive|\bsales\b|business development|業務|銷售|account manager/i, re: /業務|銷售|報價|客戶開發|訂單|收款|展會|業績|account executive|sales rep|\bquota\b|prospect/i },
     { id: 'engineering', title: /engineer|developer|\bsde\b|software dev|\bsre\b|devops|architect|工程師|程式|scientist/i, re: /軟體|工程師|程式碼|程式開發|後端|前端|系統設計|code review|\bapi\b/i },
-    { id: 'ops', title: /行政|採購|總務|procurement|office manager|administrative|purchasing/i, re: /行政|採購|倉儲|總務|庶務|公文|用印|procurement|purchase order/i }
+    { id: 'logistics', title: /operations (manager|associate|specialist|lead|supervisor|analyst)|area manager|shift manager|supply chain|logistics|warehouse|fulfil+ment|transportation|倉儲|物流|營運|供應鏈|倉管|調度/i, re: /倉儲|物流|出貨|排班|盤點|供應鏈|warehouse|fulfil+ment cent|supply chain|shift (performance|plan)/i },
+    { id: 'ops', title: /行政|採購|總務|procurement|office manager|administrative|purchasing|executive assistant|秘書|助理/i, re: /行政|採購|總務|庶務|公文|用印|procurement|purchase order/i }
   ];
 
   function titleFamily(title) {
@@ -437,6 +446,384 @@
       patterns: [/公文/, /用印/, /歸檔/, /行政文件/, /文件歸檔/]
     }),
     mod({
+      id: 'support-reply',
+      name: '客戶問題回覆',
+      families: ['support'],
+      level: 'AUG',
+      levelWhy: '回覆草稿可以交；退款、補償與例外處理要人核准。',
+      trigger: '客戶來電、來信或在線上提問',
+      output: '回覆草稿，以及這一案的處理紀錄',
+      inputs: ['客戶的原話與訂單或帳號資料', '可以答應的範圍：退款、補償、時效', '常見問題與標準回覆'],
+      steps: [
+        ['AI 做', '把問題歸類，找出對應的標準回覆並改成這位客戶的情況'],
+        ['人核准', '退款、補償、例外處理'],
+        ['人做', '送出回覆；電話與情緒激動的客戶由人接'],
+        ['AI 做', '把處理過程寫成案件紀錄']
+      ],
+      accept: '回覆沒有答應權限以外的事；案件紀錄看得出問題、處理方式與結果。',
+      risks: ['答應了公司沒有的政策', '把還在查的事說成已解決'],
+      patterns: [/respon(d|se|ding)\w* to .{0,30}(customer|client|user|inquir|ticket|contact)/i, /customer (inquir|contact|question|issue|complaint|request|concern)/i, /\btickets?\b/i, /(resolve|troubleshoot|handle)\w* .{0,40}(customer|issue|problem|inquir)/i, /(phone|email|chat).{0,30}(support|contact|customer|inquir)/i, /回覆客戶|客訴|客服|來電|來信|線上客服|客戶問題|退換貨|退款/]
+    }),
+    mod({
+      id: 'support-escalate',
+      name: '案件升級與問題回報',
+      families: ['support'],
+      level: 'AUG',
+      levelWhy: '彙整與分類可以交；要不要升級、升級給誰要人判斷。',
+      trigger: '有一案第一線處理不了，或同一種問題反覆出現',
+      output: '給下一關的升級單，或一份重複問題的彙整',
+      inputs: ['案件紀錄', '升級條件與對口單位', '這段期間的案件清單'],
+      steps: [
+        ['AI 做', '把案件整理成對方看得懂的升級單：現象、已試過的做法、客戶要什麼'],
+        ['人核准', '是不是真的要升級，以及升級給誰'],
+        ['AI 做', '把同類案件歸在一起，算出次數'],
+        ['人做', '跟對口單位追進度，回覆客戶']
+      ],
+      accept: '升級單不用回頭問第一線就能接手；彙整裡每一類都附得出案件編號。',
+      risks: ['把個案寫成普遍問題', '升級單漏掉客戶已經試過的步驟'],
+      patterns: [/escalat/i, /document\w* .{0,40}(case|interaction|issue|step|resolution)/i, /(identify|report|track)\w* .{0,30}(trends?|recurring|root cause)/i, /log(ging)? (cases|tickets|calls|contacts)/i, /通報|升級|案件紀錄|問題回報|彙整.{0,6}問題|異常回報/]
+    }),
+    mod({
+      id: 'support-kb',
+      name: '常見問題與知識庫',
+      families: ['support'],
+      level: 'AUG',
+      levelWhy: '文件草稿可以交；內容對不對、能不能公開要人核准。',
+      trigger: '同一個問題被問了很多次，或流程改了',
+      output: '一篇常見問題或內部教學文件的草稿',
+      inputs: ['已經解決的案件與當時的回覆', '現行流程或政策', '文件的讀者：客戶或內部同仁'],
+      steps: [
+        ['AI 做', '把已解決的案件寫成問題、步驟、注意事項'],
+        ['人核准', '步驟是否正確、有沒有不能公開的內容'],
+        ['人做', '上架，並通知第一線']
+      ],
+      accept: '照文件做得出結果；沒有寫進任何一位客戶的個人資料。',
+      risks: ['把舊流程寫進新文件', '案件裡的個資沒拿掉'],
+      patterns: [/knowledge base/i, /help (center|articles?)/i, /\bfaqs?\b/i, /\bmacros?\b/i, /canned responses?/i, /training (material|document)/i, /team documentation/i, /常見問題|知識庫|教學文件|話術|教育訓練教材/]
+    }),
+    mod({
+      id: 'logistics-kpi',
+      name: '營運指標與班次報表',
+      families: ['logistics'],
+      level: 'AUG',
+      levelWhy: '數字彙整可以交；異常的原因與要採取的行動要人判斷。',
+      trigger: '每班、每日或每週要回報營運表現',
+      output: '指標對目標的報表，以及落後項目的清單',
+      inputs: ['系統匯出的產量、時效、品質、安全數字', '各項指標的目標值', '這段期間的異常紀錄'],
+      steps: [
+        ['AI 做', '把數字對上目標，標出落後與突然變動的項目'],
+        ['人做', '到現場確認落後的原因'],
+        ['AI 做', '把原因與已採取的行動寫進報表'],
+        ['人核准', '報表送出前確認數字與說法']
+      ],
+      accept: '每個數字都對得回系統匯出；落後項目都有原因或標成待查。',
+      risks: ['替落後的數字編一個沒人確認過的原因', '不同班次的數字口徑不同卻直接相比'],
+      patterns: [/\bkpis?\b/i, /\bmetrics\b/i, /performance (reports?|reviews?|against|targets?)/i, /productivity (reports?|plans?|rates?|requirements)/i, /(daily|shift|weekly) reports?/i, /scorecard/i, /營運報表|績效指標|日報|達成率|營運數據/]
+    }),
+    mod({
+      id: 'logistics-improve',
+      name: '流程改善與標準作業',
+      families: ['logistics'],
+      level: 'AUG',
+      levelWhy: '資料整理與文件草稿可以交；改哪裡、怎麼改要人決定並到現場驗證。',
+      trigger: '同一個異常反覆發生，或要把做法寫成標準作業',
+      output: '一份問題分析（現象、原因、對策），或一份標準作業文件草稿',
+      inputs: ['異常紀錄與發生的時間、站點', '現行作業步驟', '現場觀察或訪談筆記'],
+      steps: [
+        ['AI 做', '把異常依時間、站點、類型整理，列出可能原因'],
+        ['人做', '到現場確認真正的原因'],
+        ['AI 做', '把對策與新步驟寫成文件草稿'],
+        ['人核准', '新作業步驟，以及安全上有沒有疑慮']
+      ],
+      accept: '每個原因都有紀錄或現場觀察支持；新步驟現場的人照著做得出來。',
+      risks: ['只看紀錄就下結論，沒到現場確認', '新步驟漏掉安全規定'],
+      patterns: [/process improvements?/i, /continuous improvement/i, /root.?causes?/i, /\blean\b/i, /kaizen/i, /six sigma/i, /standard work/i, /\bsops?\b/i, /deep.?dives?/i, /operational excellence/i, /流程改善|標準作業|異常分析|優化流程|作業流程/]
+    }),
+    mod({
+      id: 'logistics-plan',
+      name: '排班、產能與庫存規劃',
+      families: ['logistics'],
+      level: 'AUG',
+      levelWhy: '試算可以交；排班牽涉到人，庫存牽涉到錢，都要人核准。',
+      trigger: '要排下一期的人力、車次或庫存',
+      output: '排班或補貨的試算表，附上用了哪些假設',
+      inputs: ['需求預估或訂單量', '可用人力、車輛、儲位', '限制：工時法規、安全庫存、交期'],
+      steps: [
+        ['AI 做', '依需求與限制算出人力、車次或補貨量'],
+        ['AI 做', '標出不夠或過剩的時段與品項'],
+        ['人核准', '排班表、加班與補貨量'],
+        ['人做', '通知人員與供應商']
+      ],
+      accept: '每個數字都看得到算法與假設；沒有違反工時或安全庫存的排法。',
+      risks: ['排出違反工時規定的班表', '把預估當成確定的訂單'],
+      patterns: [/labou?r plan/i, /staffing/i, /capacity plan/i, /shift (plan|schedul)/i, /\bscheduling\b/i, /headcount plan/i, /inventory (plan|levels?|control|accuracy|management)/i, /demand plan/i, /route plan/i, /replenish/i, /排班|產能|庫存|盤點|調度|補貨|配送規劃/]
+    }),
+    mod({
+      id: 'design-draft',
+      name: '設計稿與規格',
+      families: ['design'],
+      level: 'AUG',
+      levelWhy: '初稿與多個版本可以交；方向、品牌與最後定稿要人決定。',
+      trigger: '有一個畫面、流程或素材要設計',
+      output: '設計初稿或幾個方向，以及交給工程或印製的規格',
+      inputs: ['需求與使用情境', '品牌與設計規範', '尺寸、平台與技術限制'],
+      steps: [
+        ['人做', '定方向與要解決的問題'],
+        ['AI 做', '照方向出幾個版本，並把規格整理成清單'],
+        ['人核准', '選定版本、修到能交付'],
+        ['AI 做', '依定稿整理標註與切圖清單']
+      ],
+      accept: '定稿符合設計規範；規格清單工程或廠商不用回頭問。',
+      risks: ['用了沒有授權的圖片或字型', '版本好看但沒解決原本的問題'],
+      patterns: [/wireframes?/i, /prototyp/i, /mock-?ups?/i, /user flows?/i, /visual design/i, /design (concepts?|solutions?|deliverables|specs?|specifications)/i, /interaction design/i, /key art/i, /\bgraphics\b/i, /\blayouts?\b/i, /設計稿|視覺設計|介面設計|排版|原型|主視覺|平面設計/]
+    }),
+    mod({
+      id: 'design-research',
+      name: '使用者研究整理',
+      families: ['design'],
+      level: 'AUG',
+      levelWhy: '逐字稿整理與歸類可以交；訪談本身與結論要人做。',
+      trigger: '做完一輪訪談或易用性測試',
+      output: '研究發現的整理：觀察、出現幾次、原話',
+      inputs: ['訪談逐字稿或測試錄影的筆記', '這輪研究要回答的問題', '受訪者背景'],
+      steps: [
+        ['人做', '訪談與測試'],
+        ['AI 做', '把筆記依主題歸類，每一點附原話與出現次數'],
+        ['人核准', '哪些算發現、優先順序怎麼排'],
+        ['AI 做', '寫成給團隊看的摘要']
+      ],
+      accept: '每個發現都附得出原話；沒有把一個人的意見寫成多數人的看法。',
+      risks: ['把研究者自己的推測寫成受訪者說的', '受訪者的個資沒拿掉'],
+      patterns: [/user research/i, /usability/i, /user (interviews?|testing|feedback)/i, /research (findings|insights|studies)/i, /customer insights?/i, /使用者研究|易用性|使用者訪談|使用者回饋/]
+    }),
+    mod({
+      id: 'design-system',
+      name: '設計規範與元件庫',
+      families: ['design'],
+      level: 'AUG',
+      levelWhy: '文件與清單可以交；規範本身的決定要人做。',
+      trigger: '新增或修改元件，或發現各處做法不一致',
+      output: '元件的使用說明，或一份不一致之處的清單',
+      inputs: ['現行設計規範', '新元件或修改的內容', '目前產品裡的實際用法'],
+      steps: [
+        ['AI 做', '比對現行用法與規範，列出不一致的地方'],
+        ['人核准', '要改規範還是改產品'],
+        ['AI 做', '寫元件說明：什麼時候用、什麼時候不用']
+      ],
+      accept: '說明裡的例子都在產品裡找得到；清單每一項都指得出位置。',
+      risks: ['把一次性的做法寫成規範'],
+      patterns: [/design systems?/i, /style guides?/i, /component librar/i, /pattern librar/i, /design (guidelines|standards|patterns)/i, /brand (guidelines|standards)/i, /設計規範|設計系統|元件庫|品牌規範/]
+    }),
+    mod({
+      id: 'product-spec',
+      name: '需求文件與規劃',
+      families: ['product'],
+      level: 'AUG',
+      levelWhy: '文件草稿可以交；做什麼、不做什麼、先後順序要人決定。',
+      trigger: '有一個新需求或新產品要寫成文件',
+      output: '需求文件草稿：問題、對象、範圍、驗收條件',
+      inputs: ['客戶或使用者的原始回饋與數據', '目標與限制：時程、資源、法規', '相關單位的意見'],
+      steps: [
+        ['AI 做', '把回饋與數據整理成問題陳述與幾個做法'],
+        ['人核准', '選哪個做法、範圍切到哪裡'],
+        ['AI 做', '寫成需求文件，列出驗收條件與未決事項'],
+        ['人做', '跟工程、設計與主管對過，定案']
+      ],
+      accept: '每個需求都有驗收條件；文件裡的數據都附得出來源。',
+      risks: ['把假設寫成已驗證的客戶需求', '漏列未決事項，讓人以為都定了'],
+      patterns: [/requirements/i, /\bprds?\b/i, /user stories/i, /product (specs?|vision|strategy|roadmap)/i, /\broadmaps?\b/i, /business cases?/i, /working backwards/i, /需求文件|產品規劃|產品規格|路線圖|企劃書/]
+    }),
+    mod({
+      id: 'product-track',
+      name: '專案進度與風險追蹤',
+      families: ['product'],
+      level: 'AUG',
+      levelWhy: '彙整進度可以交；延期、砍範圍與向上回報的說法要人決定。',
+      trigger: '每週要更新專案進度，或有項目延誤',
+      output: '進度更新：做完什麼、落後什麼、風險與需要誰決定',
+      inputs: ['專案計畫與里程碑', '各負責人回報的狀態', '上一期的風險與待辦'],
+      steps: [
+        ['AI 做', '把各人回報對上里程碑，標出落後與卡住的項目'],
+        ['人做', '找落後項目的負責人確認原因與新日期'],
+        ['AI 做', '寫成進度更新，列出要誰做什麼決定'],
+        ['人核准', '送出前確認說法']
+      ],
+      accept: '每個落後項目都有負責人與新日期，或標成待確認；沒有把沒回報的項目寫成正常。',
+      risks: ['沒人回報的項目被當成沒問題', '替延誤編原因'],
+      patterns: [/project plans?/i, /\btimelines?\b/i, /\bmilestones?\b/i, /status (reports?|updates?)/i, /track\w* (progress|deliverables|action items|projects?)/i, /risks? (and|&) (issues|dependencies|mitigation)/i, /program (execution|delivery|management)/i, /launch (plans?|readiness)/i, /end-to-end .{0,20}programs?/i, /專案進度|時程|里程碑|風險追蹤|專案管理|進度追蹤/]
+    }),
+    mod({
+      id: 'data-analysis',
+      name: '資料分析與發現',
+      families: ['data'],
+      level: 'AUG',
+      levelWhy: '查詢與初步分析可以交；問題怎麼定義、結論能不能下要人判斷。',
+      trigger: '有人帶著一個業務問題來要數字',
+      output: '分析結果：問題、用了哪些資料、發現、限制',
+      inputs: ['要回答的問題與決策情境', '資料表與欄位定義', '時間範圍與排除條件'],
+      steps: [
+        ['人做', '跟提問的人確認問題與口徑'],
+        ['AI 做', '寫查詢、跑數字、做初步圖表'],
+        ['人核准', '查詢邏輯與口徑有沒有錯'],
+        ['AI 做', '寫成發現與限制，區分資料顯示的與推測的']
+      ],
+      accept: '每個數字都重跑得出來；結論沒有超出資料能支持的範圍。',
+      risks: ['把相關寫成因果', '口徑跟既有報表不同卻沒說明'],
+      patterns: [/analy[sz](e|es|is|ing)\b/i, /\binsights?\b/i, /\bsql\b/i, /a\/b test/i, /\bexperiments?\b/i, /statistical/i, /hypothes/i, /deep.?dives?/i, /資料分析|數據分析|洞察|統計分析/]
+    }),
+    mod({
+      id: 'data-report',
+      name: '報表與儀表板',
+      families: ['data'],
+      level: 'AUG',
+      levelWhy: '報表與查詢可以交；指標定義要跟業務單位定案。',
+      trigger: '固定要出的報表，或要新做一個儀表板',
+      output: '報表或儀表板，附指標定義與資料來源',
+      inputs: ['要看的指標與定義', '資料來源與更新頻率', '讀報表的人要拿它做什麼決定'],
+      steps: [
+        ['人核准', '指標定義'],
+        ['AI 做', '寫查詢、排版面、加上資料更新時間'],
+        ['AI 做', '跟既有報表對數字，列出對不上的地方'],
+        ['人做', '確認對不上的原因，上線']
+      ],
+      accept: '同一個指標跟既有報表對得上，或差異有說明；每張圖都標了資料時間。',
+      risks: ['同名指標定義不同', '資料沒更新卻沒人發現'],
+      patterns: [/dashboards?/i, /\breport(s|ing)\b/i, /visuali[sz]ation/i, /tableau|quicksight|power ?bi|looker/i, /metrics? definitions?/i, /\betl\b/i, /data (pipelines?|models?|warehous\w+|quality|solutions?)/i, /報表|儀表板|視覺化|資料倉儲/]
+    }),
+    mod({
+      id: 'legal-contract',
+      name: '合約審閱與起草',
+      families: ['legal'],
+      level: 'HUMAN-LEAD',
+      levelWhy: '法律判斷與談判由法務負責；AI 只做比對、標示與初稿。',
+      trigger: '收到一份合約要審，或要依範本起草',
+      output: '條款比對表（哪裡偏離範本），或依範本填好的初稿',
+      inputs: ['對方版本或要用的範本', '公司的標準條款與可讓步的範圍', '這筆交易的背景'],
+      steps: [
+        ['AI 做', '逐條對照範本，標出偏離與缺漏'],
+        ['人做', '判斷哪些能接受、怎麼改'],
+        ['AI 做', '依法務的決定改成修訂版'],
+        ['人核准', '送出前逐條確認']
+      ],
+      accept: '每一處偏離都被標出來；修訂版沒有法務沒決定過的改動。',
+      risks: ['漏標一條不利的條款', '把範本條款當成對方已同意'],
+      patterns: [/(draft|review|negotiat)\w* .{0,60}(contracts?|agreements?|terms|ndas?)/i, /contract (review|drafting|management|negotiation)s?/i, /commercial agreements?/i, /\bcontracts?\b/i, /合約|契約|條款|保密協議/]
+    }),
+    mod({
+      id: 'legal-research',
+      name: '法規研究與合規追蹤',
+      families: ['legal'],
+      level: 'HUMAN-LEAD',
+      levelWhy: '法律意見由法務出；AI 只整理條文與出處。',
+      trigger: '業務單位問一件事能不能做，或法規有更新',
+      output: '相關條文與函釋的整理，附出處與日期',
+      inputs: ['要回答的問題與事實', '適用的法域', '公司既有的政策'],
+      steps: [
+        ['AI 做', '找出相關條文，逐條附出處與生效日期'],
+        ['人做', '查證條文是否現行有效，形成法律意見'],
+        ['AI 做', '把法務的意見寫成業務單位看得懂的說明'],
+        ['人核准', '送出前確認']
+      ],
+      accept: '每一條都附得出官方出處；沒有引用已廢止的條文。',
+      risks: ['引用不存在或已修正的條文', '把整理寫得像正式法律意見'],
+      patterns: [/legal research/i, /regulat/i, /\bcompliance\b/i, /\bpolic(y|ies)\b/i, /legal (advice|guidance|risks?|issues|frameworks?)/i, /counsel\w* .{0,30}(business|clients?|teams?)/i, /\bprivacy\b/i, /litigation/i, /法規|法遵|合規|法律意見|訴訟|個資/]
+    }),
+    mod({
+      id: 'fin-ap',
+      name: '應付、應收與請款',
+      families: ['finance'],
+      level: 'AUG',
+      levelWhy: '比對與清單可以交；付款與沖帳要人核准。',
+      trigger: '收到發票、請款單，或到了付款與催收日',
+      output: '核對過的付款清單，或逾期應收的催收清單',
+      inputs: ['發票、採購單與驗收單', '付款條件與核決權限', '銀行入帳明細'],
+      steps: [
+        ['AI 做', '發票、採購單、驗收單三方比對，標出對不上的'],
+        ['人核准', '付款清單'],
+        ['AI 做', '把入帳明細對上應收，列出沒對到的與逾期的'],
+        ['人做', '付款、催收、處理爭議']
+      ],
+      accept: '付款清單每一筆都有三張單據；沒對到的款項都列出來，沒有被硬配。',
+      risks: ['重複付款', '把金額相近的款項配錯客戶'],
+      patterns: [/accounts? (payable|receivable)/i, /\binvoic/i, /payment (processing|runs?)/i, /vendor payments?/i, /cash application/i, /\bcollections\b/i, /expense reports?/i, /應付|應收|請款|付款|發票|核銷|費用報銷/]
+    }),
+    mod({
+      id: 'fin-audit',
+      name: '稽核、內控與稅務申報',
+      families: ['finance'],
+      level: 'AUG',
+      levelWhy: '資料準備與底稿可以交；判斷與簽核要人負責。',
+      trigger: '到了稽核、內控測試或申報期',
+      output: '底稿或申報資料的草稿，附每個數字的來源',
+      inputs: ['查核或申報要的項目清單', '帳載資料與憑證', '上一期的底稿與調整'],
+      steps: [
+        ['AI 做', '依清單把資料備齊，標出缺件'],
+        ['AI 做', '把數字填進底稿，附來源'],
+        ['人核准', '會計與稅務上的判斷'],
+        ['人做', '簽核、申報、回覆查核人員']
+      ],
+      accept: '底稿每個數字都對得回帳載；缺件都列出來。',
+      risks: ['用錯稅率或申報期間', '把沒有憑證的金額填進去'],
+      patterns: [/\baudits?\b/i, /internal controls?/i, /\bsox\b/i, /tax (returns?|filings?|compliance|provision)/i, /statutory/i, /due diligence/i, /稽核|內控|查帳|稅務|申報|扣繳/]
+    }),
+    mod({
+      id: 'it-ticket',
+      name: '資訊設備報修與故障排除',
+      families: ['it'],
+      level: 'AUG',
+      levelWhy: '查手冊、列步驟可以交；動到機器與權限的操作要人做。',
+      trigger: '有人報修，或監控跳出異常',
+      output: '排查步驟與處理紀錄',
+      inputs: ['報修內容與錯誤訊息', '設備與系統的基本資料', '既有的處理手冊'],
+      steps: [
+        ['AI 做', '依錯誤訊息找出可能原因，排出由簡到難的檢查步驟'],
+        ['人做', '實際檢查與動手處理'],
+        ['人核准', '更換設備、重設權限、停機'],
+        ['AI 做', '把處理過程寫成紀錄']
+      ],
+      accept: '紀錄看得出現象、原因、做了什麼；沒有跳過要核准的操作。',
+      risks: ['建議的步驟會造成資料遺失', '沒確認身分就重設權限'],
+      patterns: [/troubleshoot/i, /help ?desk/i, /\btickets?\b/i, /technical support/i, /(install|configur|deploy|repair|replace)\w* .{0,40}(hardware|software|devices?|servers?|network|equipment|laptops?)/i, /break.?fix/i, /\bracks?\b/i, /cabling/i, /故障排除|報修|安裝設定|維修|帳號權限/]
+    }),
+    mod({
+      id: 'safety-inspect',
+      name: '安全巡檢與事故紀錄',
+      families: ['safety'],
+      level: 'HUMAN-LEAD',
+      levelWhy: '巡檢與事故調查要人到現場；AI 只整理紀錄與報表。',
+      trigger: '例行巡檢，或發生事故與虛驚事件',
+      output: '巡檢紀錄或事故報告的草稿',
+      inputs: ['巡檢項目表', '現場照片與筆記', '當事人與目擊者的陳述'],
+      steps: [
+        ['人做', '現場巡檢、訪談'],
+        ['AI 做', '把筆記整理成紀錄：時間、地點、發現、照片編號'],
+        ['人核准', '原因判定與改善措施'],
+        ['人做', '依法通報、追蹤改善']
+      ],
+      accept: '紀錄裡每一項發現都對得上照片或筆記；原因欄沒有人判定前保持空白。',
+      risks: ['替事故編原因', '漏掉法定通報期限'],
+      patterns: [/inspections?/i, /safety audits?/i, /risk assessments?/i, /\bhazards?\b/i, /incident (investigations?|reports?)/i, /near.?miss/i, /\binjur(y|ies)\b/i, /巡檢|稽查|風險評估|事故|職災|危害/]
+    }),
+    mod({
+      id: 'safety-train',
+      name: '安全訓練與法規追蹤',
+      families: ['safety'],
+      level: 'AUG',
+      levelWhy: '教材與名冊可以交；訓練內容對不對、法規怎麼適用要人確認。',
+      trigger: '新人到職、定期複訓，或法規更新',
+      output: '訓練教材草稿與應訓名冊',
+      inputs: ['適用的法規與公司規定', '人員名冊與上次受訓日期', '近期的事故與巡檢發現'],
+      steps: [
+        ['AI 做', '依名冊算出誰該受訓，列出逾期的人'],
+        ['AI 做', '依規定與近期事故寫教材草稿'],
+        ['人核准', '教材內容與法規引用'],
+        ['人做', '上課、簽到、留存紀錄']
+      ],
+      accept: '名冊對得上人事資料；教材引用的規定都是現行版本。',
+      risks: ['引用已修正的法規', '名冊漏掉派遣或承攬人員'],
+      patterns: [/safety training/i, /training (programs?|sessions?|materials?|and certification)/i, /toolbox/i, /health and safety programs?/i, /regulatory requirements?/i, /\bosha\b/i, /教育訓練|安全宣導|安全衛生|法規要求/]
+    }),
+    mod({
       id: 'cross-notes',
       name: '週報與會議紀錄',
       families: ['general'],
@@ -569,7 +956,10 @@
     return { title: title || '未命名職位', responsibilities: resp, sawResp: sawResp };
   }
 
+  var NOT_DUTY = /^(stand|walk|lift|push|pull|bend|reach|climb|squat)\b.{0,80}(hours?|pounds|lbs|kg)|work in an environment (where|that)|climb and descend|work flexible shifts|noise level|temperature (may|can|varies)|(medical|dental|vision),? .{0,30}(coverage|insurance)|parental leave|401\s?\(?k\)?|paid time off|employee discounts?|體力負荷|需輪班|配合加班|久站/i;
+
   function isQualification(line) {
+    if (NOT_DUTY.test(line)) return true;
     var skill = /學歷|科系|執照|證照|年以上|years of|\d\+\s*years|熟悉|精通|加分|優先考慮|本科|碩士|學士|不拘/i.test(line);
     var work = /撰寫|製作|產出|負責|執行|追蹤|紀錄|記錄|評估|給藥|報價|開發|分析|預算|預測|交班|衛教|採購|面試|歸檔/.test(line);
     if (skill && !work) return true;
