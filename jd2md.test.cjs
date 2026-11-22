@@ -235,14 +235,14 @@ assert.deepStrictEqual(ae2.families, ['sales']);
 assertNo(ae2, /財務|預算|關帳|工程|程式/);
 
 // 4. 沒有模組可配的職類，老實回報沒有，不硬配。
-var econ = JD2MD.convert([
-  'Senior Economist',
+var chef = JD2MD.convert([
+  'Sous Chef',
   'Responsibilities',
-  '- Build causal models of marketplace pricing',
-  '- Advise leadership on long-run demand'
+  '- Lead the kitchen line during dinner service',
+  '- Plate dishes to the head chef’s standard'
 ].join('\n'));
-assert.strictEqual(econ.modules.length, 0);
-assert.ok(econ.error);
+assert.strictEqual(chef.modules.length, 0);
+assert.ok(chef.error);
 
 // ---- 2026-11-22 第二輪：替缺模組的職類手寫模組，每個職類鎖一個案例 ----
 function familyCase(title, lines, family, names, never) {
@@ -378,6 +378,42 @@ function fileNameOf(out, item) {
 JD2MD.SAMPLES.forEach(function (sample) { assertEnglish(JD2MD.convert(sample.text, { lang: 'en' })); });
 var enErr = JD2MD.convert('', { lang: 'en' });
 assert.ok(!enErr.ok && !CJK.test(enErr.error));
+
+// ---- 2026-11-23 第四輪：訓練、設施、保全防損、經濟、公共政策、駐廠醫護、內容品質、影音製作 ----
+familyCase('Learning Coordinator', [
+  'Design and deliver training programs for new hires',
+  'Track certification expiry and cross-training completion'
+], 'learning', [/培訓課程/, /訓練成效/]);
+familyCase('Maintenance Technician', [
+  'Perform preventive maintenance and complete work orders in the CMMS',
+  'Manage fleet spare parts and inventory'
+], 'facilities', [/設備保養/]);
+familyCase('Sr. Construction Manager', [
+  'Manage contractors and track project schedules and budgets for data center construction',
+  'Identify project risks and the cost impacts'
+], 'facilities', [/修繕與營建/], /功能實作|合約審閱/);
+var lp = familyCase('Loss Prevention Specialist', [
+  'Investigate theft and inventory shrink and record findings',
+  'Conduct security audits of sites against security standards'
+], 'security', [/損失與安全事件調查/, /安全稽核/]);
+assert.strictEqual(findModule(lp, /調查/).level, 'HUMAN-LEAD');
+familyCase('Senior Economist', [
+  'Apply econometric and causal inference methods to measure pricing effects',
+  'Run A/B experiments and advise leaders on economic issues'
+], 'econ', [/經濟研究/]);
+familyCase('Public Policy Manager', [
+  'Monitor and analyze state legislation and policy developments',
+  'Build relationships with trade associations and government officials and lead advocacy'
+], 'policy', [/政策與法案追蹤/, /政府關係/]);
+familyCase('Onsite Medical Representative', [
+  'Provide first aid and make referrals to outside medical providers',
+  'Maintain medical supply inventory'
+], 'medical', [/駐廠醫護/]);
+// 職稱有 Engineer 的安全工程師仍然算工程，不被保全防損接走。
+assert.deepStrictEqual(JD2MD.convert('Security Engineer\nResponsibilities\n- Build threat detection services\n- Review code for vulnerabilities').families, ['engineering']);
+var qa = JD2MD.convert('Digital Content Associate\nResponsibilities\n- Conduct quality checks on image assets against the brand style guide\n- Plan video production schedules and deliver assets to partners');
+findModule(qa, /內容與素材品質/);
+findModule(qa, /影音製作/);
 
 // 5. 職責小標底下沒有條列符號（Amazon 的寫法，或貼上時符號掉了）。
 var plain = JD2MD.parseJD([
