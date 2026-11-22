@@ -137,48 +137,48 @@
   <main class="shell">
     <section class="intro">
       <div>
-        <h1>把一份 JD 收成<em>能交接</em>的 Markdown</h1>
+        <h1 data-th="h1">把一份 JD 收成<em>能交接</em>的 Markdown</h1>
       </div>
       <div>
-        <p>貼上職缺全文。相關的職責會收成 1–6 份工作模組，每份都能複製給 AI。對不上的留在「仍然需要你本人」。</p>
-        <div class="framework-note"><span class="dot"></span><span>這是<strong>簡單版</strong>，在這台瀏覽器完成，不送出、不保存。它用職責句型歸併，不是逐條貼 AUTO／AUG／HUMAN，也不會為了湊數套上無關模板。</span></div>
+        <p data-t="lead">貼上職缺全文。相關的職責會收成 1–6 份工作模組，每份都能複製給 AI。對不上的留在「仍然需要你本人」。</p>
+        <div class="framework-note"><span class="dot"></span><span data-th="note">這是<strong>簡單版</strong>，在這台瀏覽器完成，不送出、不保存。它用職責句型歸併，不是逐條貼 AUTO／AUG／HUMAN，也不會為了湊數套上無關模板。</span></div>
       </div>
     </section>
 
     <section class="workspace">
-      <aside class="input-panel" aria-label="JD 輸入區">
-        <div class="panel-head"><span class="step">Step 01</span><h2>貼上 JD 全文</h2></div>
+      <aside class="input-panel" aria-label="JD 輸入區" data-ta="inputArea">
+        <div class="panel-head"><span class="step">Step 01</span><h2 data-t="step1">貼上 JD 全文</h2></div>
         <form class="form" id="jdForm">
           <div class="field">
-            <label for="jdText">職缺全文</label>
-            <textarea id="jdText" placeholder="貼上職稱、工作內容、任職條件。條列或編號都可以。" spellcheck="false"></textarea>
+            <label for="jdText" data-t="jdLabel">職缺全文</label>
+            <textarea id="jdText" placeholder="貼上職稱、工作內容、任職條件。條列或編號都可以。" data-tp="jdPlaceholder" spellcheck="false"></textarea>
             <div class="row">
-              <p class="hint" id="hint">全文是主輸入。連結抓不到時，把內文貼這裡。</p>
+              <p class="hint" id="hint" data-t="jdHint">全文是主輸入。連結抓不到時，把內文貼這裡。</p>
               <span class="count" id="count">0 / 12000</span>
             </div>
           </div>
           <div class="field">
-            <label for="outLang">產出語言</label>
+            <label for="outLang" data-t="langLabel">產出語言 / Output language</label>
             <select id="outLang">
               <option value="en" selected>English</option>
               <option value="zh">繁體中文</option>
             </select>
           </div>
           <div class="actions">
-            <button class="btn btn-primary" id="runBtn" type="submit">收成工作模組</button>
+            <button class="btn btn-primary" id="runBtn" type="submit" data-t="run">收成工作模組</button>
           </div>
-          <div class="samples" role="group" aria-label="範例職缺">
-            <button class="btn btn-secondary" type="button" data-sample="finance">財務分析師範例</button>
-            <button class="btn btn-secondary" type="button" data-sample="sales">業務專員範例</button>
-            <button class="btn btn-secondary" type="button" data-sample="nurse">護理師範例</button>
+          <div class="samples" role="group" aria-label="範例職缺" data-ta="samples">
+            <button class="btn btn-secondary" type="button" data-sample="finance" data-t="sampleFinance">財務分析師範例</button>
+            <button class="btn btn-secondary" type="button" data-sample="sales" data-t="sampleSales">業務專員範例</button>
+            <button class="btn btn-secondary" type="button" data-sample="nurse" data-t="sampleNurse">護理師範例</button>
           </div>
-          <div class="input-divider"><span>或試著讀連結</span></div>
+          <div class="input-divider"><span data-t="orLink">或試著讀連結</span></div>
           <div class="field">
-            <label for="jdUrl">JD 連結</label>
+            <label for="jdUrl" data-t="urlLabel">JD 連結</label>
             <input id="jdUrl" type="url" placeholder="https://…" autocomplete="url" />
-            <p class="hint">多數職缺站會擋住跨站讀取。失敗的話，改貼全文即可。</p>
+            <p class="hint" data-t="urlHint">多數職缺站會擋住跨站讀取。失敗的話，改貼全文即可。</p>
           </div>
-          <button class="btn btn-secondary" id="fetchBtn" type="button" style="margin-top:10px">讀取連結</button>
+          <button class="btn btn-secondary" id="fetchBtn" type="button" style="margin-top:10px" data-t="fetch">讀取連結</button>
           <div class="link-mode" id="linkMode" role="alert"></div>
           <div class="status" id="status" role="status" aria-live="polite"></div>
         </form>
@@ -187,28 +187,28 @@
       <div class="results">
         <section class="empty" id="emptyState">
           <div class="empty-inner">
-            <h2>先給我一份 JD</h2>
-            <p>產出是數份可複製的 Markdown，外加一份仍然要你本人做的清單。不是另一份分析報告。</p>
+            <h2 data-t="emptyTitle">先給我一份 JD</h2>
+            <p data-t="emptyBody">產出是數份可複製的 Markdown，外加一份仍然要你本人做的清單。不是另一份分析報告。</p>
           </div>
         </section>
         <section class="output" id="output" aria-live="polite">
           <div class="output-head">
             <div>
-              <h2 id="roleTitle">工作模組</h2>
+              <h2 id="roleTitle" data-t="modules">工作模組</h2>
               <p id="resultMeta"></p>
             </div>
             <div class="output-actions">
-              <button class="mini-btn" id="copyOneBtn" type="button">複製這份</button>
-              <button class="mini-btn" id="copyAllBtn" type="button">複製全部</button>
-              <button class="mini-btn" id="downloadBtn" type="button">下載 .md</button>
-              <button class="mini-btn" id="zipBtn" type="button">下載 .zip</button>
+              <button class="mini-btn" id="copyOneBtn" type="button" data-t="copyOne">複製這份</button>
+              <button class="mini-btn" id="copyAllBtn" type="button" data-t="copyAll">複製全部</button>
+              <button class="mini-btn" id="downloadBtn" type="button" data-t="dlMd">下載 .md</button>
+              <button class="mini-btn" id="zipBtn" type="button" data-t="dlZip">下載 .zip</button>
             </div>
           </div>
           <div class="assumptions" id="assumptions"></div>
-          <nav class="case-tabs" id="caseTabs" aria-label="工作模組"></nav>
+          <nav class="case-tabs" id="caseTabs" aria-label="工作模組" data-ta="modules"></nav>
           <article class="case" id="caseView"></article>
           <pre class="md-view" id="mdView"></pre>
-          <p class="footnote">延伸閱讀：<a href="https://github.com/msitarzewski/agency-agents" target="_blank" rel="noopener">agency-agents</a>（MIT）的固定章節可以當寫 prompt 的參考。這裡不導入該套件，也不摘錄它的內文。產品方案見 <a href="docs/jd2md-proposal.md">docs/jd2md-proposal.md</a>。<a href="index.html">use case 工具</a>是另一頁，不是這個簡單版。</p>
+          <p class="footnote" data-th="footnote">延伸閱讀：<a href="https://github.com/msitarzewski/agency-agents" target="_blank" rel="noopener">agency-agents</a>（MIT）的固定章節可以當寫 prompt 的參考。這裡不導入該套件，也不摘錄它的內文。產品方案見 <a href="docs/jd2md-proposal.md">docs/jd2md-proposal.md</a>。<a href="index.html">use case 工具</a>是另一頁，不是這個簡單版。</p>
         </section>
       </div>
     </section>
@@ -219,6 +219,70 @@
   (function () {
     var state = { result: null, active: 0 };
     var $ = function (id) { return document.getElementById(id); };
+    // 網頁外框的文字。產出的語言由 jd2md.js 決定，這裡只管介面。
+    var PAGE = {
+      zh: {
+        title: 'JD2MD 簡單版',
+        h1: '把一份 JD 收成<em>能交接</em>的 Markdown',
+        lead: '貼上職缺全文。相關的職責會收成 1–6 份工作模組，每份都附一段可以直接貼給 AI 的指令。對不上的留在「仍然需要你本人」。',
+        note: '這是<strong>簡單版</strong>，在這台瀏覽器完成，不送出、不保存。它用職責句型歸併，不是逐條貼 AUTO／AUG／HUMAN，也不會為了湊數套上無關模板。',
+        inputArea: 'JD 輸入區', step1: '貼上 JD 全文', jdLabel: '職缺全文',
+        jdPlaceholder: '貼上職稱、工作內容、任職條件。條列或編號都可以。',
+        jdHint: '全文是主輸入。連結抓不到時，把內文貼這裡。',
+        langLabel: '產出語言 / Output language', run: '收成工作模組', samples: '範例職缺',
+        sampleFinance: '財務分析師範例', sampleSales: '業務專員範例', sampleNurse: '護理師範例',
+        orLink: '或試著讀連結', urlLabel: 'JD 連結', urlHint: '多數職缺站會擋住跨站讀取。失敗的話，改貼全文即可。', fetch: '讀取連結', fetching: '正在讀取…',
+        emptyTitle: '先給我一份 JD', emptyBody: '產出是數份可複製的 Markdown，外加一份仍然要你本人做的清單。不是另一份分析報告。',
+        modules: '工作模組', copyOne: '複製這份', copyAll: '複製全部', dlMd: '下載 .md', dlZip: '下載 .zip',
+        footnote: '延伸閱讀：<a href="https://github.com/msitarzewski/agency-agents" target="_blank" rel="noopener">agency-agents</a>（MIT）的固定章節可以當寫 prompt 的參考。這裡不導入該套件，也不摘錄它的內文。產品方案見 <a href="docs/jd2md-proposal.md">docs/jd2md-proposal.md</a>。<a href="index.html">use case 工具</a>是另一頁，不是這個簡單版。',
+        done: '已收成', loaded: function (name) { return '已載入' + name; }, fromLink: '已從連結讀取，並收成工作模組',
+        noClip: '無法存取剪貼簿', copiedOne: '這份 Markdown 已複製', copiedAll: '全部 Markdown 已複製',
+        linkFail: '無法從連結讀取 JD', linkFailTail: ' 請改貼職缺全文，貼上後即可收成。', connecting: '正在連線並解析頁面',
+        badUrl: '連結格式無法辨識。', badProto: '只支援 http 或 https 連結。', timeout: '讀取超過 15 秒，網站沒有在時限內回應。',
+        http: function (code) { return '網站回傳 HTTP ' + code + '，拒絕或無法提供這個頁面。'; },
+        emptyPage: '頁面有回應，但內容是空白、登入頁或 JavaScript 外殼，找不到足夠的職缺文字。',
+        cors: '該網站未允許跨站讀取，或瀏覽器無法連上它。常見原因是 CORS 或防爬。'
+      },
+      en: {
+        title: 'JD2MD',
+        h1: 'Turn a job description into <em>hand-off</em> Markdown',
+        lead: 'Paste the full job description. Related duties become 1–6 work modules, each with a prompt you can paste straight into your AI. Lines that do not fit stay under “Still needs you”.',
+        note: 'This is the <strong>simple version</strong>. It runs in this browser and nothing is sent or stored. It groups duties by phrasing instead of tagging each line AUTO / AUG / HUMAN, and never adds unrelated templates to fill space.',
+        inputArea: 'Job description input', step1: 'Paste the job description', jdLabel: 'Full job description',
+        jdPlaceholder: 'Paste the title, responsibilities and qualifications. Bullets or numbers both work.',
+        jdHint: 'The full text is the main input. If a link cannot be read, paste the text here.',
+        langLabel: 'Output language / 產出語言', run: 'Build work modules', samples: 'Sample job descriptions',
+        sampleFinance: 'Finance analyst sample', sampleSales: 'Sales rep sample', sampleNurse: 'Nurse sample',
+        orLink: 'or try a link', urlLabel: 'Job description link', urlHint: 'Most job sites block cross-site reading. If it fails, paste the full text instead.', fetch: 'Read link', fetching: 'Reading…',
+        emptyTitle: 'Start with a job description', emptyBody: 'You get a few Markdown files you can copy, plus a list of what still needs you. Not another analysis report.',
+        modules: 'Work modules', copyOne: 'Copy this', copyAll: 'Copy all', dlMd: 'Download .md', dlZip: 'Download .zip',
+        footnote: 'Further reading: the fixed sections in <a href="https://github.com/msitarzewski/agency-agents" target="_blank" rel="noopener">agency-agents</a> (MIT) are a useful reference for writing prompts. This page does not use or quote that package. Product plan (in Chinese): <a href="docs/jd2md-proposal.md">docs/jd2md-proposal.md</a>. The <a href="index.html">use case tool</a> is a separate page.',
+        done: 'Done', loaded: function (name) { return 'Loaded the ' + name.toLowerCase(); }, fromLink: 'Read from the link and built work modules',
+        noClip: 'Could not access the clipboard', copiedOne: 'This Markdown is copied', copiedAll: 'All Markdown is copied',
+        linkFail: 'Could not read the job description from the link. ', linkFailTail: ' Paste the full text instead and build from that.', connecting: 'Connecting and reading the page',
+        badUrl: 'The link could not be recognised.', badProto: 'Only http or https links are supported.', timeout: 'The site did not respond within 15 seconds.',
+        http: function (code) { return 'The site returned HTTP ' + code + ' and refused or could not serve the page.'; },
+        emptyPage: 'The page responded, but it is empty, a login page or a JavaScript shell, with not enough job text.',
+        cors: 'The site does not allow cross-site reading, or the browser could not reach it. CORS or anti-scraping is the usual cause.'
+      }
+    };
+    function pageLang() {
+      return $('outLang').value === 'zh' ? 'zh' : 'en';
+    }
+    function p(key) {
+      return PAGE[pageLang()][key];
+    }
+    function applyPageLang() {
+      var lang = pageLang();
+      var dict = PAGE[lang];
+      document.documentElement.lang = lang === 'en' ? 'en' : 'zh-Hant';
+      document.title = dict.title;
+      Array.prototype.forEach.call(document.querySelectorAll('[data-t]'), function (node) { node.textContent = dict[node.getAttribute('data-t')]; });
+      Array.prototype.forEach.call(document.querySelectorAll('[data-th]'), function (node) { node.innerHTML = dict[node.getAttribute('data-th')]; });
+      Array.prototype.forEach.call(document.querySelectorAll('[data-tp]'), function (node) { node.setAttribute('placeholder', dict[node.getAttribute('data-tp')]); });
+      Array.prototype.forEach.call(document.querySelectorAll('[data-ta]'), function (node) { node.setAttribute('aria-label', dict[node.getAttribute('data-ta')]); });
+      try { localStorage.setItem('jd2md-lang', lang); } catch (e) { /* 記不住也沒關係 */ }
+    }
     function esc(s) {
       return String(s || '').replace(/[&<>"']/g, function (c) {
         return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -335,7 +399,7 @@
       $('emptyState').style.display = 'none';
       $('output').classList.add('show');
       $('linkMode').classList.remove('show');
-      $('status').textContent = message || '已收成';
+      $('status').textContent = message || p('done');
       $('status').classList.add('success');
       showActive();
       if (window.innerWidth < 901) $('output').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -343,10 +407,10 @@
     function copyText(text, okMsg) {
       if (!text) return;
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(function () { toast(okMsg); }).catch(function () { toast('無法存取剪貼簿'); });
+        navigator.clipboard.writeText(text).then(function () { toast(okMsg); }).catch(function () { toast(p('noClip')); });
         return;
       }
-      toast('無法存取剪貼簿');
+      toast(p('noClip'));
     }
     function download(filename, blob) {
       var a = document.createElement('a');
@@ -409,7 +473,7 @@
       return text;
     }
     function fetchFailure(message) {
-      $('linkMode').innerHTML = '<strong>無法從連結讀取 JD</strong>' + esc(message) + ' 請改貼職缺全文，貼上後即可收成。';
+      $('linkMode').innerHTML = '<strong>' + esc(p('linkFail')) + '</strong>' + esc(message) + esc(p('linkFailTail'));
       $('linkMode').classList.add('show');
       $('status').textContent = '';
       $('status').classList.remove('success');
@@ -419,14 +483,14 @@
       var btn = $('fetchBtn');
       if (btn.disabled) return;
       var url;
-      try { url = new URL($('jdUrl').value.trim()); } catch (e) { fetchFailure('連結格式無法辨識。'); return; }
-      if (url.protocol !== 'https:' && url.protocol !== 'http:') { fetchFailure('只支援 http 或 https 連結。'); return; }
+      try { url = new URL($('jdUrl').value.trim()); } catch (e) { fetchFailure(p('badUrl')); return; }
+      if (url.protocol !== 'https:' && url.protocol !== 'http:') { fetchFailure(p('badProto')); return; }
       var controller = new AbortController();
       var timer = setTimeout(function () { controller.abort(); }, 15000);
       btn.disabled = true;
-      btn.textContent = '正在讀取…';
+      btn.textContent = p('fetching');
       $('status').classList.remove('success');
-      $('status').textContent = '正在連線並解析頁面';
+      $('status').textContent = p('connecting');
       $('linkMode').classList.remove('show');
       try {
         var response = await fetch(url.href, { method: 'GET', mode: 'cors', credentials: 'omit', redirect: 'follow', headers: { Accept: 'text/html,application/xhtml+xml' }, signal: controller.signal });
@@ -435,16 +499,16 @@
         if (text.length < 180) throw { kind: 'empty' };
         $('jdText').value = text;
         updateCount();
-        render('已從連結讀取，並收成工作模組');
+        render(p('fromLink'));
       } catch (error) {
-        if (error && error.name === 'AbortError') fetchFailure('讀取超過 15 秒，網站沒有在時限內回應。');
-        else if (error && error.kind === 'http') fetchFailure('網站回傳 HTTP ' + error.status + '，拒絕或無法提供這個頁面。');
-        else if (error && error.kind === 'empty') fetchFailure('頁面有回應，但內容是空白、登入頁或 JavaScript 外殼，找不到足夠的職缺文字。');
-        else fetchFailure('該網站未允許跨站讀取，或瀏覽器無法連上它。常見原因是 CORS 或防爬。');
+        if (error && error.name === 'AbortError') fetchFailure(p('timeout'));
+        else if (error && error.kind === 'http') fetchFailure(p('http')(error.status));
+        else if (error && error.kind === 'empty') fetchFailure(p('emptyPage'));
+        else fetchFailure(p('cors'));
       } finally {
         clearTimeout(timer);
         btn.disabled = false;
-        btn.textContent = '讀取連結';
+        btn.textContent = p('fetch');
       }
     }
     $('jdForm').addEventListener('submit', function (event) {
@@ -461,21 +525,29 @@
         $('jdText').value = found.text;
         $('jdUrl').value = '';
         updateCount();
-        render('已載入' + found.label + '範例');
+        render(p('loaded')(btn.textContent));
       });
     });
     $('outLang').addEventListener('change', function () {
+      applyPageLang();
       if (state.result) render();
     });
+    try {
+      var saved = localStorage.getItem('jd2md-lang');
+      if (saved === 'zh' || saved === 'en') $('outLang').value = saved;
+    } catch (e) { /* 預設英文 */ }
+    var urlLang = new URLSearchParams(location.search).get('lang');
+    if (urlLang === 'zh' || urlLang === 'en') $('outLang').value = urlLang;
+    applyPageLang();
     $('copyOneBtn').addEventListener('click', function () {
       if (!state.result) return;
       var list = views(state.result);
       var current = list[state.active];
-      copyText(current && current.markdown, '這份 Markdown 已複製');
+      copyText(current && current.markdown, p('copiedOne'));
     });
     $('copyAllBtn').addEventListener('click', function () {
       if (!state.result) return;
-      copyText(state.result.markdown, '全部 Markdown 已複製');
+      copyText(state.result.markdown, p('copiedAll'));
     });
     $('downloadBtn').addEventListener('click', function () {
       if (!state.result || !state.result.markdown) return;
