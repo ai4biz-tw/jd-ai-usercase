@@ -164,6 +164,94 @@ findModule(ae, /預測|業績/);
 assertNo(ae, /工程|程式|護理|預算|關帳/);
 assert.ok(ae.human.some(function (item) { return /product roadmaps/.test(item.text); }));
 
+// ---- 2026-11-22 用 884 份真實 JD 測出來的三個問題，各鎖一個案例 ----
+
+// 1. 小標不是「Responsibilities」也要認得；條件與福利底下的條列不算工作內容。
+var eng = JD2MD.convert([
+  'Software Engineer, Platform',
+  '',
+  'About the team',
+  'We build the systems other teams rely on.',
+  '',
+  'What you’ll do at Example:',
+  '- Build and maintain backend services that power our product',
+  '- Own system reliability, including SLO definition and error budgets',
+  '- Participate in code reviews and write unit tests',
+  '- Partner with product managers and designers',
+  '',
+  'We’d love to hear from you if you have:',
+  '- 5+ years of experience building backend systems',
+  '- Experience with budget forecasting tools',
+  '',
+  'Benefits',
+  '- Health insurance and a learning budget',
+  '- Flexible working hours'
+].join('\n'));
+assertShape(eng);
+var engParsed = JD2MD.parseJD('Software Engineer\n\nWhat you’ll do at Example:\n- Build services\n- Review code\n\nWhat you’ll bring\n- 5+ years\n\nBenefits\n- Health insurance');
+assert.deepStrictEqual(engParsed.responsibilities, ['Build services', 'Review code']);
+assert.deepStrictEqual(eng.families, ['engineering']);
+findModule(eng, /功能實作/);
+findModule(eng, /程式審查/);
+// 「error budgets」「budget forecasting」「learning budget」都不該變成財務模組。
+assertNo(eng, /財務|預算|關帳|管理報告/);
+assert.ok(!eng.modules.some(function (item) {
+  return item.bullets.some(function (line) { return /Health insurance|5\+ years|forecasting tools/.test(line); });
+}), '條件與福利被收進模組');
+assert.ok(!eng.human.some(function (item) { return /Health insurance|Flexible working/.test(item.text); }), '福利被當成職責');
+
+// 2. 中文括號小標。
+var zh = JD2MD.parseJD([
+  '業務開發專員',
+  '【工作內容】',
+  '- 開發新客戶並撰寫報價單',
+  '- 每週提交銷售預測',
+  '【必備條件】',
+  '- 兩年以上業務經驗',
+  '【薪資待遇】',
+  '- 月薪四萬起'
+].join('\n'));
+assert.deepStrictEqual(zh.responsibilities, ['開發新客戶並撰寫報價單', '每週提交銷售預測']);
+
+// 3. 職稱是業務，內文提到 forecast、budget 也不配財務模組。
+var ae2 = JD2MD.convert([
+  'Account Executive',
+  'What you will do',
+  '- Manage the full sales cycle and maintain an accurate pipeline forecast',
+  '- Understand customer budgets and build proposals',
+  '- Prospect new customers in the region'
+].join('\n'));
+assertShape(ae2);
+assert.deepStrictEqual(ae2.families, ['sales']);
+assertNo(ae2, /財務|預算|關帳|工程|程式/);
+
+// 4. 沒有模組可配的職類，老實回報沒有，不硬配。
+var support = JD2MD.convert([
+  'Customer Support Specialist',
+  'Responsibilities',
+  '- Respond to customer tickets within the SLA',
+  '- Escalate product issues to the engineering team'
+].join('\n'));
+assert.strictEqual(support.modules.length, 0);
+assert.ok(support.error);
+
+// 5. 職責小標底下沒有條列符號（Amazon 的寫法，或貼上時符號掉了）。
+var plain = JD2MD.parseJD([
+  'Software Development Engineer II',
+  'We are looking for an engineer to join the team.',
+  '',
+  'Key job responsibilities',
+  'Embedded system development.',
+  'Linux driver development.',
+  '',
+  'About the team',
+  'We value work-life balance and mentorship.',
+  '',
+  'BASIC QUALIFICATIONS',
+  '- 3+ years of professional software development experience'
+].join(String.fromCharCode(10)));
+assert.deepStrictEqual(plain.responsibilities, ['Embedded system development.', 'Linux driver development.']);
+
 var zipBuf = Buffer.from(JD2MD.buildZip(sales.files));
 var entries = zipNames(zipBuf);
 assert.strictEqual(entries.length, sales.files.length, entries.join(', '));
