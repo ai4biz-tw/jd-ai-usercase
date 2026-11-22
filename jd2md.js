@@ -840,7 +840,7 @@
       ],
       accept: '摘要裡每一句都標得出來源；結論欄在人判定前保持空白。',
       risks: ['把指控寫成已確認的事實', '個資或案情外流給不相干的人'],
-      patterns: [/employee relations/i, /investigat/i, /grievance/i, /disciplinary/i, /\bconflicts?\b/i, /complaints?/i, /labou?r relations/i, /policy (violations?|breach)/i, /員工關係|申訴|職場調查|懲處|勞資|違規/]
+      patterns: [/employee relations/i, /investigat/i, /grievance/i, /disciplinary/i, /(workplace|employee|interpersonal|team) conflicts?/i, /complaints?/i, /labou?r relations/i, /policy (violations?|breach)/i, /員工關係|申訴|職場調查|懲處|勞資|違規/]
     }),
     mod({
       id: 'hr-coach',
@@ -859,7 +859,7 @@
       ],
       accept: '每個問題都附具體例子；每項期待都能在期限內檢核。',
       risks: ['評論個性而不是行為', '同樣的情況給不同的人不同的標準'],
-      patterns: [/\bcoach/i, /performance (management|feedback|reviews?|improvement|evaluations?|issues)/i, /underperform/i, /\bpips?\b/i, /people management/i, /(advis|consult)\w* .{0,40}(managers|leaders|leadership) on .{0,30}(people|performance|team|employee)/i, /hr (guidance|advice)/i, /績效|主管諮詢|考核|輔導/]
+      patterns: [/coach\w* .{0,40}(business |site |frontline |people )?(leaders|managers|leadership)/i, /performance (management|feedback|reviews?|improvement|evaluations?|issues)/i, /underperform/i, /\bpips?\b/i, /people management/i, /(advis|consult)\w* .{0,40}(managers|leaders|leadership) on .{0,30}(people|performance|team|employee)/i, /hr (guidance|advice)/i, /績效|主管諮詢|考核|輔導/]
     }),
     mod({
       id: 'hr-insight',
@@ -878,7 +878,7 @@
       ],
       accept: '每個主題都附次數與去識別的原話；人數太少會認出是誰的群組不單獨列出。',
       risks: ['小群組的意見被認出是誰說的', '把推測寫成離職的原因'],
-      patterns: [/engagement/i, /surveys?/i, /sentiment/i, /attrition|retention|turnover/i, /(hr|people) (data|metrics|analytics)/i, /feedback (channels?|mechanisms?)/i, /roundtables?/i, /員工意見|滿意度|離職率|敬業度|人資數據|留任/]
+      patterns: [/(employee|associate|staff|builder) engagement/i, /disengage/i, /engagement (surveys?|scores?|data|results)/i, /(employee|engagement|pulse|people) surveys?/i, /sentiment/i, /attrition|retention|turnover/i, /(hr|people) (data|metrics|analytics)/i, /feedback (channels?|mechanisms?)/i, /roundtables?/i, /員工意見|滿意度|離職率|敬業度|人資數據|留任/]
     }),
     mod({
       id: 'hr-org',
