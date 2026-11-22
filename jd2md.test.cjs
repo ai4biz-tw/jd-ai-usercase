@@ -326,11 +326,8 @@ var hrbp = familyCase('HR Business Partner', [
 assert.strictEqual(findModule(hrbp, /員工關係/).level, 'HUMAN-LEAD');
 
 // 每個模組都有英文版，而且欄位數量對得上中文版。
-// 原本 23 個模組的英文版下一個 PR 補上，補上前英文產出會退回中文。
-var PENDING_EN = ['fin-plan', 'fin-close', 'fin-report', 'fin-serve', 'fin-research', 'sales-q2c', 'sales-prospect', 'sales-forecast', 'care-assess', 'care-meds', 'care-chart', 'care-handover', 'care-edu', 'eng-build', 'eng-review', 'eng-design', 'content-draft', 'content-cal', 'hr-hire', 'hr-pay', 'ops-buy', 'ops-doc'];
 JD2MD.MODULES.forEach(function (item) {
   var e = JD2MD.EN[item.id];
-  if (PENDING_EN.indexOf(item.id) !== -1) { assert.ok(!e); return; }
   assert.ok(e, '缺英文版：' + item.id);
   ['name', 'levelWhy', 'trigger', 'output', 'accept'].forEach(function (key) {
     assert.ok(typeof e[key] === 'string' && e[key].length > 3, item.id + '.' + key);
@@ -340,7 +337,7 @@ JD2MD.MODULES.forEach(function (item) {
   assert.strictEqual(e.risks.length, item.risks.length, item.id + ' risks');
   assert.ok(!/的時候$/.test(e.trigger) && !/^when /i.test(e.trigger), item.id + ' trigger');
 });
-assert.strictEqual(Object.keys(JD2MD.EN).length + PENDING_EN.length, JD2MD.MODULES.length, '英文表有多出來的 id');
+assert.strictEqual(Object.keys(JD2MD.EN).length, JD2MD.MODULES.length, '英文表有多出來的 id');
 
 // 英文產出：除了引用的 JD 原句，不能有中文。
 var CJK = /[㐀-鿿　-〿＀-￯]/;
@@ -365,7 +362,8 @@ function fileNameOf(out, item) {
 [
   ['Customer Support Specialist', ['Respond to customer tickets within the SLA', 'Escalate product issues to the engineering team', 'Write help center articles for recurring questions']],
   ['HR Business Partner', ['Coach business leaders on performance feedback', 'Handle employee relations matters and conduct workplace investigations', 'Analyze engagement survey results', 'Lead talent reviews', 'Own onboarding for new hires']],
-  ['Corporate Counsel', ['Draft, review and negotiate commercial agreements', 'Advise business teams on regulatory compliance']]
+  ['Corporate Counsel', ['Draft, review and negotiate commercial agreements', 'Advise business teams on regulatory compliance']],
+  ['Registered Nurse', ['Perform nursing assessments and record vital signs', 'Administer medications as ordered', 'Hand over patients at shift change', 'Make small talk with visitors']]
 ].forEach(function (c) {
   var text = [c[0], 'Responsibilities'].concat(c[1].map(function (line) { return '- ' + line; })).join('\n');
   var en = JD2MD.convert(text, { lang: 'en' });
@@ -377,6 +375,7 @@ function fileNameOf(out, item) {
   assert.deepStrictEqual(en.modules.map(function (m) { return m.id; }), zh.modules.map(function (m) { return m.id; }), c[0]);
   assert.strictEqual(zh.lang, 'zh');
 });
+JD2MD.SAMPLES.forEach(function (sample) { assertEnglish(JD2MD.convert(sample.text, { lang: 'en' })); });
 var enErr = JD2MD.convert('', { lang: 'en' });
 assert.ok(!enErr.ok && !CJK.test(enErr.error));
 

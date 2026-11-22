@@ -941,6 +941,226 @@
 
   // 英文版產出。欄位跟中文一一對應：steps 只放文字，角色沿用中文那份的順序。
   var EN = {
+    'fin-plan': {
+      name: 'Financial planning, budgeting and month-end',
+      levelWhy: 'Drafts and checklists can be handed off; assumptions and numbers that go into the official version need human approval.',
+      trigger: 'you build a budget, update a forecast, or reach month-end',
+      output: 'a budget or forecast workpaper that ties out, plus the list of month-end items',
+      inputs: ['Actuals, the previous budget and forecast', 'Accounts or projects in scope', 'Who can approve assumptions this time'],
+      steps: ['List the accounts, periods, versions and missing fields', 'Growth rates, assumptions, and any number that goes into the official version', 'Draft the variance notes from approved numbers only; do not invent reasons', 'Lock the version; a person writes it back into the system of record'],
+      accept: 'Amounts match the approved sources; every number in the notes traces back to a source.',
+      risks: ['Writing unapproved assumptions as facts', 'Treating month-end as publishable before it is closed']
+    },
+    'fin-close': {
+      name: 'Close, reconciliations and journal entries',
+      levelWhy: 'Workpapers can be prepared; entries, reconciliations and the close only count after human approval.',
+      trigger: 'you reach month-end or quarter-end, or need to recognise revenue or reconcile',
+      output: 'a close checklist, reconciliations and draft journal entries',
+      inputs: ['Account balances and numbers reported by partners', 'Reconciling items and open differences', 'Who can approve entries'],
+      steps: ['Turn accounts, differences and missing support into a close checklist', 'Entries, reconciliations and any judgement that goes into the books', 'Draft explanations from approved numbers only; do not fill in reasons', 'Post, close and hand over to audit'],
+      accept: 'Every entry ties to an approved number; unreconciled differences stay blank.',
+      risks: ['Recording an unapproved estimate as booked', 'Plugging unsupported numbers to close on time']
+    },
+    'fin-report': {
+      name: 'Management reporting and variance commentary',
+      levelWhy: 'Variance commentary can be drafted; conclusions for leadership and publishing need a human sign-off.',
+      trigger: 'a regular reporting day arrives, or leadership asks for a variance explanation',
+      output: 'draft variance commentary where every sentence ties to a baseline and a source',
+      inputs: ['Actuals, budget, forecast or prior year on the same basis', 'Who reads the report and for what period', 'Business reasons already confirmed (leave blank if none)'],
+      steps: ['List the period, the comparison baseline and the variances in the material', 'Whether the basis is good enough to explain to leadership', 'Draft the commentary; mark reasons without a source as to be confirmed', 'Finalise and publish'],
+      accept: 'Numbers match the comparison baseline; unsourced sentences are not written as conclusions.',
+      risks: ['Using the wrong period or version', 'Writing correlation as causation']
+    },
+    'fin-serve': {
+      name: 'Routine finance support and self-serve reports',
+      levelWhy: 'Repeated data pulls and explanations can be handed off; definitions and access need a human decision.',
+      trigger: 'business teams ask for numbers day to day, or you need a self-serve report',
+      output: 'a Q&A sheet or report guide with definitions, dates and what cannot be self-served yet',
+      inputs: ['Questions that keep coming up', 'Metric definitions and data dates', 'Which numbers this reader may see'],
+      steps: ['Collect repeated questions in one table and mark the ones with a fixed answer', 'Which ones can be self-served and which need a person', 'Draft answers or the report guide with definitions and dates', 'Grant access; numbers that go outside are sent by a person'],
+      accept: 'Every self-serve answer has a definition and a date; questions without a definition are not answered as final.',
+      risks: ['Building self-serve before definitions are agreed', 'Wider access exposing detail people should not see']
+    },
+    'fin-research': {
+      name: 'Ad-hoc and industry analysis',
+      levelWhy: 'Compiling sources can be handed off; using it for a decision needs a person to check the sources.',
+      trigger: 'there is an ad-hoc analysis or industry question with a deadline',
+      output: 'a list of findings with sources, with gaps left blank',
+      inputs: ['The question and the deadline', 'Internal numbers you may cite', 'Which sources count as reliable'],
+      steps: ['Break the question into items to research and note the deadline', 'Scope and which sources are trusted', 'Compile findings with a source for each; leave blanks where nothing was found', 'Decide whether to use it'],
+      accept: 'Every finding has a source or is clearly marked as not found.',
+      risks: ['Filling in numbers that could not be found', 'Treating a search summary as the original source']
+    },
+    'sales-q2c': {
+      name: 'Quote to cash',
+      levelWhy: 'Quotes and open-balance lists can be drafted; prices, discounts and credit terms need human approval.',
+      trigger: 'an enquiry comes in, an order is placed, or it is time to reconcile and collect',
+      output: 'a draft quote, plus order and payment status',
+      inputs: ['The enquiry: specs, quantity, delivery date', 'Price list and discount authority', 'Open orders and receivable balances'],
+      steps: ['Turn the enquiry into specs, quantity and delivery date, and list open balances', 'Price, discount, and whether credit can be extended', 'Flag overdue orders or orders missing information', 'Send the quote, chase payment, confirm receipt'],
+      accept: 'Quoted numbers stay within the given price list and authority; every open balance has a status.',
+      risks: ['Putting a discount beyond authority into the quote', 'Writing an estimated delivery date as a commitment']
+    },
+    'sales-prospect': {
+      name: 'New customer prospecting',
+      levelWhy: 'Lead lists and follow-up drafts can be handed off; whether to keep pursuing needs human judgement.',
+      trigger: 'you need new customers, or an event just ended and leads need follow-up',
+      output: 'a lead list with follow-up status, plus an unsent follow-up draft',
+      inputs: ['Current lead list or event business cards', 'The customer type you are targeting', 'Next steps already promised'],
+      steps: ['Organise the leads, cards and follow-up status', 'Which customers are worth pursuing', 'Draft the follow-up email or a pre-meeting brief', 'Meetings, commitments and relationship judgement'],
+      accept: 'Every customer on the follow-up list has a source; drafts do not promise price or delivery.',
+      risks: ['Describing an unknown prospect as an existing relationship', 'Promising a discount in a follow-up email']
+    },
+    'sales-forecast': {
+      name: 'Sales forecast and performance reporting',
+      levelWhy: 'The sheet can be compiled; amounts and confidence need human approval before submission.',
+      trigger: 'the weekly or monthly sales forecast is due',
+      output: 'a sales forecast sheet and the changes since last time',
+      inputs: ['Open deals and amounts', 'The last forecast submitted', 'The period this time'],
+      steps: ['Compile open deals into a forecast sheet', 'Amounts and confidence', 'Flag changes since last time', 'Submit to your manager'],
+      accept: 'Every amount on the sheet came from a person; deals without confidence are not written as committed.',
+      risks: ['Padding the target with an empty pipeline']
+    },
+    'care-assess': {
+      name: 'Nursing assessment and vital signs',
+      levelWhy: 'Assessment and measurement are done by the nurse; AI only organises results already measured.',
+      trigger: 'a patient is admitted, a shift starts, or a reassessment is needed',
+      output: 'an assessment checklist and a draft record built from measured values',
+      inputs: ['Items to assess', 'Values already measured and when', 'The hospital’s normal ranges (do not guess if missing)'],
+      steps: ['Lay out the items to check as a list', 'Assess and measure in person', 'Turn only the measured values into a draft record', 'Whether abnormal values need to be escalated'],
+      accept: 'Every value in the draft comes from the bedside record; unmeasured items stay blank.',
+      risks: ['AI filling in vital signs nobody measured', 'Using the draft in place of the nurse’s judgement']
+    },
+    'care-meds': {
+      name: 'Medication and treatment',
+      levelWhy: 'Only licensed staff give medication or treatment; AI does not suggest doses or replace checks.',
+      trigger: 'there is an order for medication or treatment',
+      output: 'a checklist of items already completed, not a medication instruction',
+      inputs: ['The order as written', 'Checks the nurse has already completed', 'How patient identity is verified'],
+      steps: ['Check the order, the patient and the drug, then give the medication or treatment', 'Turn only the completed checks into a list; do not suggest doses', 'Record it only if the list matches the order and what was actually given'],
+      accept: 'No drug appears that is not on the order; doses are not rewritten.',
+      risks: ['Reading the checklist as permission to give medication', 'Showing an order as done when it has not been carried out']
+    },
+    'care-chart': {
+      name: 'Nursing documentation',
+      levelWhy: 'Wording can be drafted; the nurse checks the facts before it goes into the chart.',
+      trigger: 'care is done and needs to go into the chart',
+      output: 'a draft chart note',
+      inputs: ['Facts, times and people the nurse already wrote down', 'The unit’s documentation format'],
+      steps: ['Draft chart wording from the written facts only', 'Facts, times and wording', 'Enter it into the official chart'],
+      accept: 'The draft adds no care that did not happen; times and people match the source.',
+      risks: ['Adding care that was not given to make the note look complete']
+    },
+    'care-handover': {
+      name: 'Shift handover and incident reporting',
+      levelWhy: 'A handover draft can be compiled; a person checks for missed patients and sends any report.',
+      trigger: 'the shift changes, or something happens that must be reported',
+      output: 'a handover draft and a list of items to report',
+      inputs: ['Known issues, pending tasks and patients this shift', 'The unit’s reporting criteria'],
+      steps: ['Collect known issues and pending tasks into a handover draft', 'Whether any patient is missing, and which items really need reporting', 'Verbal handover and the formal report'],
+      accept: 'Every line ties back to this shift’s records; no patient outside the source is added.',
+      risks: ['Writing an unconfirmed issue as already reported']
+    },
+    'care-edu': {
+      name: 'Patient education',
+      levelWhy: 'An explanation can be drafted; a person decides if it suits this patient and teaches face to face.',
+      trigger: 'you need to explain care to a patient or family',
+      output: 'a patient education draft not yet given',
+      inputs: ['The order or education sheet', 'What this patient is allowed to be told'],
+      steps: ['Draft the explanation from the given education sheet', 'Whether the content suits this patient', 'Teach the patient in person'],
+      accept: 'The draft stays within the given sheet; uncertain sentences are flagged.',
+      risks: ['Including precautions that do not apply to this patient']
+    },
+    'eng-build': {
+      name: 'Feature work and code changes',
+      levelWhy: 'Changes can be drafted; merging and shipping need human review.',
+      trigger: 'there is a clearly scoped feature or bug to change',
+      output: 'a change description, a minimal change and test results',
+      inputs: ['The requirement or bug description', 'Acceptance criteria', 'What must not change'],
+      steps: ['List the scope of the change and the acceptance criteria', 'Whether the scope is right', 'Draft the minimal change and tests', 'Review, merge and ship'],
+      accept: 'The change has tests or an explicit manual check; nothing outside the task was touched.',
+      risks: ['A wrong test being treated as a pass', 'Putting secrets into code or prompts']
+    },
+    'eng-review': {
+      name: 'Code review and testing',
+      levelWhy: 'Review comments can be drafted; whether to merge is a human decision.',
+      trigger: 'a change needs review, or tests need to be added',
+      output: 'a list of risks and missing tests',
+      inputs: ['The change', 'Existing tests', 'The team’s merge criteria'],
+      steps: ['List the risks and the missing tests', 'Decide whether to send it back or merge'],
+      accept: 'Every comment points to a specific change; style preferences are not called defects.',
+      risks: ['Recommending a merge from the summary without reading the change']
+    },
+    'eng-design': {
+      name: 'System design',
+      levelWhy: 'Options can be laid out; a person makes the architecture call.',
+      trigger: 'you need to choose a system design among several approaches',
+      output: 'a comparison of options, without a decided conclusion',
+      inputs: ['Constraints, traffic or data boundaries', 'Non-negotiable requirements'],
+      steps: ['Lay out constraints and options side by side', 'Make the architecture call'],
+      accept: 'Every constraint in the comparison comes from the shared material; no capacity numbers are invented.',
+      risks: ['Writing one option as already decided']
+    },
+    'content-draft': {
+      name: 'Content drafting',
+      levelWhy: 'Drafts can be handed off; facts, tone and publishing need human approval.',
+      trigger: 'there is a brief for copy or a post that is not yet published',
+      output: 'a content draft',
+      inputs: ['Audience, goal and what must not be said', 'Fact sources you may cite'],
+      steps: ['Draft from the brief without adding unsourced numbers', 'Facts and tone', 'Publish'],
+      accept: 'Facts in the draft trace to sources; unsourced sentences are marked to be confirmed.',
+      risks: ['Adding unverified performance numbers', 'Publishing the draft as is']
+    },
+    'content-cal': {
+      name: 'Content calendar',
+      levelWhy: 'The calendar can be laid out; topics and dates need a human decision.',
+      trigger: 'you need to plan topics for a period',
+      output: 'a content calendar',
+      inputs: ['Themes for the period and dates to avoid', 'Events already confirmed'],
+      steps: ['Place known events on the calendar and leave empty days blank', 'Topics and dates', 'Finalise'],
+      accept: 'Every cell is either blank or sourced; no event is made up to fill space.',
+      risks: ['Inventing events to fill the calendar']
+    },
+    'hr-hire': {
+      name: 'Recruiting and interview scheduling',
+      levelWhy: 'Role summaries and invitation drafts can be handed off; hiring is a human decision.',
+      trigger: 'you open a role or schedule interviews',
+      output: 'a summary of the role requirements and a draft invitation',
+      inputs: ['Requirements from the hiring manager', 'Available interview slots', 'Terms not yet decided'],
+      steps: ['List the requirements and available slots', 'Whether the requirements can be shared externally', 'Draft the invitation without salary that is not decided', 'Interview and hire'],
+      accept: 'External text shows no salary or level that has not been approved.',
+      risks: ['Writing hoped-for terms as a committed offer']
+    },
+    'hr-pay': {
+      name: 'Payroll and attendance',
+      levelWhy: 'Sheets can be prepared; every amount and the payroll run need human approval.',
+      trigger: 'the attendance or payroll cycle comes round',
+      output: 'an attendance or payroll check sheet',
+      inputs: ['Raw attendance records', 'Pay rules', 'People who need special handling'],
+      steps: ['Organise attendance into a sheet and flag rows with missing data', 'Every amount and every exception', 'Run payroll'],
+      accept: 'Hours without raw records are not filled with zero; amounts count as done only after sign-off.',
+      risks: ['Missing clock-ins being auto-filled as normal attendance']
+    },
+    'ops-buy': {
+      name: 'Purchasing and quote comparison',
+      levelWhy: 'Comparison sheets can be compiled; supplier and amount need human approval before ordering.',
+      trigger: 'there is a purchase need that should be compared before buying',
+      output: 'a quote comparison sheet',
+      inputs: ['Specs and quantity needed', 'Quotes received', 'The amount you are allowed to approve'],
+      steps: ['Put the need and the quotes into a comparison sheet', 'Supplier and amount', 'Order and inspect on delivery'],
+      accept: 'Every price comes from a quote received; fields without a quote are blank.',
+      risks: ['Adding a supplier that never quoted']
+    },
+    'ops-doc': {
+      name: 'Administrative documents',
+      levelWhy: 'Formatting can be handed off; sealing and sending out need human approval.',
+      trigger: 'you need to handle official letters, company seals or filing',
+      output: 'a document draft and a list of missing attachments',
+      inputs: ['Purpose and recipient', 'The existing text', 'Rules for sealing and signing'],
+      steps: ['Lay out the existing text as a draft and list missing attachments', 'Content, sealing and whether it goes out', 'Seal, send and file'],
+      accept: 'The draft does not rewrite unapproved commitments; missing attachments are flagged.',
+      risks: ['Treating it as ready to send before it is sealed']
+    },
     'support-reply': {
       name: 'Customer replies',
       levelWhy: 'Reply drafts can be handed off; refunds, compensation and exceptions need human approval.',
