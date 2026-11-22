@@ -1,9 +1,25 @@
 var assert = require('assert');
 var fs = require('fs');
-var os = require('os');
 var path = require('path');
-var { execFileSync } = require('child_process');
-var JD2MD = require('./jd2md.js');
+// package.json 是 "type": "module"，jd2md.js 是給瀏覽器用的 UMD，不能直接 require。
+// 給它一個假的 module 物件，讓它走 CommonJS 那條路。
+var holder = { exports: {} };
+new Function('module', fs.readFileSync(path.join(__dirname, 'jd2md.js'), 'utf8'))(holder);
+var JD2MD = holder.exports;
+
+// 讀 zip 的 central directory，列出檔名。不靠外部的 unzip 或 python。
+function zipNames(buf) {
+  var out = [];
+  for (var i = 0; i + 46 <= buf.length; i += 1) {
+    if (buf.readUInt32LE(i) !== 0x02014b50) continue;
+    var nameLen = buf.readUInt16LE(i + 28);
+    var extraLen = buf.readUInt16LE(i + 30);
+    var commentLen = buf.readUInt16LE(i + 32);
+    out.push(buf.slice(i + 46, i + 46 + nameLen).toString('utf8'));
+    i += 45 + nameLen + extraLen + commentLen;
+  }
+  return out;
+}
 
 var SECTIONS = [
   '## 這個模組在做什麼',
@@ -148,14 +164,15 @@ findModule(ae, /預測|業績/);
 assertNo(ae, /工程|程式|護理|預算|關帳/);
 assert.ok(ae.human.some(function (item) { return /product roadmaps/.test(item.text); }));
 
-var zipPath = path.join(os.tmpdir(), 'jd2md-test.zip');
-fs.writeFileSync(zipPath, Buffer.from(JD2MD.buildZip(sales.files)));
-execFileSync('unzip', ['-t', zipPath], { stdio: 'pipe' });
-var listing = execFileSync('python3', ['-c', 'import zipfile,sys; z=zipfile.ZipFile(sys.argv[1]); print("\\n".join(i.filename for i in z.infolist()))', zipPath], { encoding: 'utf8' });
+var zipBuf = Buffer.from(JD2MD.buildZip(sales.files));
+var entries = zipNames(zipBuf);
+assert.strictEqual(entries.length, sales.files.length, entries.join(', '));
+assert.strictEqual(zipBuf.readUInt32LE(zipBuf.length - 22), 0x06054b50, 'zip 結尾要有 end of central directory');
+var listing = entries.join(' | ');
 assert.ok(listing.indexOf('報價到收款') !== -1, listing);
 assert.ok(listing.indexOf('仍然需要你本人') !== -1, listing);
 
-console.log('jd2md.test.js ok');
+console.log('jd2md.test.cjs ok');
 console.log('finance:', names(finance));
 console.log('sales:', names(sales), 'human:', sales.human.map(function (item) { return item.text; }).join(' / '));
 console.log('nurse:', names(nurse), 'human:', nurse.human.map(function (item) { return item.text; }).join(' / '));

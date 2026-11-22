@@ -123,7 +123,7 @@
       families: ['sales'],
       level: 'AUG',
       levelWhy: '報價單與未結款清單可以起草，價格、折扣與放帳要人核准。',
-      trigger: '收到詢價、訂單成立，或到了對帳、收款的時候',
+      trigger: '收到詢價、訂單成立，或到了對帳、收款',
       output: '報價單草稿，以及訂單與收款狀態',
       inputs: ['詢價內容：規格、數量、交期', '價目與折扣權限', '未結訂單與應收餘額'],
       steps: [
@@ -161,7 +161,7 @@
       families: ['sales'],
       level: 'AUG',
       levelWhy: '表格可以收，金額與把握度要人核准後才提交。',
-      trigger: '到了每週或每月要交銷售預測的時候',
+      trigger: '到了每週或每月要交銷售預測',
       output: '一份銷售預測表，以及與上次的差異',
       inputs: ['進行中的案子與金額', '上次提交的預測', '這次的期間'],
       steps: [
@@ -180,7 +180,7 @@
       families: ['clinical'],
       level: 'HUMAN-LEAD',
       levelWhy: '評估與量測要護理師做；AI 只整理已經量到的結果。',
-      trigger: '入院、接班，或需要重新評估的時候',
+      trigger: '入院、接班，或需要重新評估',
       output: '評估項目清單，以及依實測值整理的紀錄草稿',
       inputs: ['要評估的項目', '已經量到的數值與時間', '醫院的正常值範圍（沒有就不要猜）'],
       steps: [
@@ -199,7 +199,7 @@
       families: ['clinical'],
       level: 'HUMAN-LEAD',
       levelWhy: '給藥與處置只能由有執照的人執行；AI 不建議劑量、不代替核對。',
-      trigger: '有醫囑要給藥或做治療的時候',
+      trigger: '有醫囑要給藥或做治療',
       output: '已完成項目的核對清單，不是給藥指令',
       inputs: ['醫囑原文', '護理師已經完成的核對結果', '病人身分的核對方式'],
       steps: [
@@ -217,7 +217,7 @@
       families: ['clinical'],
       level: 'AUG',
       levelWhy: '語句可以起草，寫入病歷前要護理師核對事實。',
-      trigger: '做完照護，要寫進病歷的時候',
+      trigger: '做完照護，要寫進病歷',
       output: '病歷草稿',
       inputs: ['護理師已經記下的事實、時間與對象', '單位慣用的紀錄格式'],
       steps: [
@@ -434,7 +434,7 @@
       cross: true,
       level: 'AUG',
       levelWhy: '紀錄可以起草，決定事項要人確認後才算出數。',
-      trigger: '開完會，或到了交週報的時間',
+      trigger: '開完會，或該交週報',
       output: '會議紀錄或週報草稿',
       inputs: ['已經發生的討論、決定與待辦', '固定的週報格式'],
       steps: [

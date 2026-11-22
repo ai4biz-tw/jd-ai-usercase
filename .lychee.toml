@@ -1,0 +1,10 @@
+# Broken-link check for the static site and docs.
+# data: URIs (the empty favicon) are not fetchable links.
+exclude = ['^data:']
+exclude_path = ['node_modules', '.git']
+max_retries = 3
+timeout = 20
+retry_wait_time = 2
+max_concurrency = 4
+# 429 is a rate limit, not a broken link. Success codes stay accepted.
+accept = ["200..=299", "429"]
