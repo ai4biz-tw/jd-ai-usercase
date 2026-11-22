@@ -1,0 +1,46 @@
+name: Auto-merge PR
+
+# pull_request_target runs the workflow on the default branch, including for
+# label and body edits after checks are already green. It checks out that
+# branch only. Do not checkout the pull request head here.
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited, ready_for_review, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: auto-merge-${{ github.event.pull_request.head.sha }}
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    name: auto-merge
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      checks: read
+      actions: write
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Squash-merge when gates pass
+        env:
+          MODE: merge
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/auto-merge.mjs

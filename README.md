@@ -19,3 +19,8 @@
 分析邏輯依據 Anthropic 四張官方 Claude 認證課程中的 46 個框架
 （Claude Certified Associate / Developer / Architect Foundations、
 Architect Professional），整理自官方考試指南與公開課程內容。
+
+## 協作
+
+PR 要過哪些檢查、什麼情況會自動 squash merge、什麼必須留給人，寫在
+[docs/pr-review-policy.md](docs/pr-review-policy.md)。
