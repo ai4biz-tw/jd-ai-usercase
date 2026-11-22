@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="description" content="貼上職缺，收成可交接的工作模組 Markdown。JD2MD 簡單版，在瀏覽器內完成。" />
+  <link rel="icon" href="data:," />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>JD2MD 簡單版</title>
+  <style>
+    :root{
+      color-scheme:light dark;
+      --bg:#f4f2ed;--paper:#fffefb;--ink:#1e2423;--muted:#66706d;--line:#d8d7d0;
+      --accent:#d44a2c;--accent-2:#a4321d;--accent-soft:#f7ddd5;--green:#146a50;--green-soft:#dceee7;
+      --amber:#8b5b05;--amber-soft:#f6e8c8;--shadow:0 18px 48px rgba(35,43,41,.08);
+      --r-sm:8px;--r-md:14px;--r-lg:24px;
+    }
+    @media(prefers-color-scheme:dark){
+      :root{--bg:#161a19;--paper:#202523;--ink:#f3f1e9;--muted:#a9b1ad;--line:#3b413e;
+        --accent:#ff7659;--accent-2:#ff9a84;--accent-soft:#4b2b25;--green:#76d2af;--green-soft:#213e34;
+        --amber:#efc267;--amber-soft:#41351f;--shadow:0 20px 55px rgba(0,0,0,.28)}
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans","Noto Sans TC",sans-serif;line-height:1.6}
+    button,input,textarea{font:inherit}
+    button{color:inherit}
+    a{color:var(--accent-2);text-underline-offset:3px}
+    .shell{width:min(1440px,100%);margin:0 auto;padding:28px clamp(18px,4vw,56px) 64px}
+    .intro{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.7fr);gap:36px;align-items:end;padding:28px 0 34px;border-bottom:1px solid var(--line)}
+    .intro h1{font-family:"Noto Sans TC",sans-serif;font-size:clamp(2rem,5vw,3.2rem);letter-spacing:-.045em;line-height:1.08;margin:0;max-width:12ch}
+    .intro h1 em{font-style:normal;color:var(--accent)}
+    .intro p{margin:0 0 10px;color:var(--muted);font-size:1.02rem}
+    .intro p:last-child{margin-bottom:0}
+    .framework-note{display:flex;gap:12px;align-items:flex-start;color:var(--muted);font-size:.88rem}
+    .framework-note strong{color:var(--ink)}
+    .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);margin-top:7px;flex:none}
+    .workspace{display:grid;grid-template-columns:minmax(310px,420px) minmax(0,1fr);gap:30px;padding-top:30px;align-items:start}
+    .input-panel{position:sticky;top:18px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden}
+    .panel-head{padding:22px 22px 0}
+    .step{font-size:.75rem;font-weight:700;letter-spacing:.12em;color:var(--accent);text-transform:uppercase}
+    .panel-head h2{font-family:"Noto Sans TC",sans-serif;margin:4px 0 0;font-size:1.25rem;letter-spacing:-.02em}
+    .form{padding:14px 22px 22px}
+    label{display:block;font-weight:600;font-size:.9rem;margin:0 0 7px}
+    input,textarea{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:var(--r-sm);padding:12px 13px;outline:none}
+    input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+    textarea{min-height:280px;resize:vertical;line-height:1.55}
+    .field+.field{margin-top:14px}
+    .hint{font-size:.79rem;color:var(--muted);margin:7px 0 0}
+    .row{display:flex;justify-content:space-between;gap:8px 12px;align-items:flex-start;margin-top:8px;flex-wrap:wrap}
+    .count{font-size:.78rem;color:var(--muted);white-space:nowrap;margin-left:auto}
+    .count.over{color:var(--accent);font-weight:600}
+    .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+    .btn{border:0;border-radius:10px;padding:11px 15px;font-weight:600;cursor:pointer}
+    .btn:active{transform:translateY(1px)}
+    .btn-primary{background:var(--accent);color:white}
+    .btn-primary:hover{background:var(--accent-2)}
+    .btn-secondary{background:transparent;border:1px solid var(--line)}
+    .btn-secondary:hover{background:var(--bg)}
+    .btn:disabled{cursor:wait;opacity:.68}
+    .samples{display:grid;gap:8px;margin-top:10px}
+    .samples .btn{width:100%}
+    .input-divider{display:flex;align-items:center;gap:10px;margin:18px 0 14px;color:var(--muted);font-size:.76rem}
+    .input-divider:before,.input-divider:after{content:"";height:1px;background:var(--line);flex:1}
+    .link-mode{display:none;margin-top:14px;padding:13px 14px;background:var(--amber-soft);color:var(--amber);border-radius:var(--r-sm);font-size:.84rem}
+    .link-mode.show{display:block}
+    .link-mode strong{display:block;color:var(--ink);margin-bottom:3px}
+    .status{min-height:24px;margin-top:10px;font-size:.82rem;color:var(--accent-2)}
+    .status.success{color:var(--green)}
+    .results{min-width:0}
+    .empty{min-height:560px;border:1px dashed var(--line);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;padding:38px;text-align:center;background:color-mix(in srgb,var(--paper) 55%,transparent)}
+    .empty-inner{max-width:440px}
+    .empty h2{font-family:"Noto Sans TC",sans-serif;font-size:1.45rem;margin:0 0 8px}
+    .empty p{margin:0;color:var(--muted)}
+    .output{display:none}
+    .output.show{display:block}
+    .output-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:16px}
+    .output-head h2{font-family:"Noto Sans TC",sans-serif;font-size:1.7rem;line-height:1.25;margin:0 0 4px;letter-spacing:-.03em}
+    .output-head p{margin:0;color:var(--muted)}
+    .output-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .mini-btn{border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:8px 11px;font-size:.82rem;cursor:pointer}
+    .mini-btn:hover{border-color:var(--accent);color:var(--accent)}
+    .assumptions{background:var(--amber-soft);color:var(--amber);padding:12px 15px;border-radius:var(--r-sm);margin:0 0 16px;font-size:.88rem}
+    .case-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+    .case-tab{border:1px solid var(--line);background:transparent;border-radius:999px;padding:7px 12px;font-size:.82rem;cursor:pointer;max-width:100%}
+    .case-tab[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+    .case{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow)}
+    .case-hero{padding:26px 28px 18px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr auto;gap:16px}
+    .case-index{color:var(--accent);font-weight:700;font-size:.78rem;letter-spacing:.12em}
+    .case h3{font-family:"Noto Sans TC",sans-serif;font-size:1.5rem;letter-spacing:-.03em;line-height:1.3;margin:4px 0 8px}
+    .level{align-self:start;text-align:right;font-size:.84rem;font-weight:700}
+    .level span{display:block;font-weight:500;color:var(--muted);font-size:.76rem;margin-top:2px}
+    .level.aug{color:var(--amber)}
+    .level.human{color:var(--accent)}
+    .level.auto{color:var(--green)}
+    .case-body{padding:6px 28px 26px}
+    .section{padding:18px 0;border-bottom:1px solid var(--line)}
+    .section:last-child{border-bottom:0;padding-bottom:0}
+    .section h4{margin:0 0 8px;font-size:.86rem;letter-spacing:.04em;color:var(--muted)}
+    .section p{margin:0}
+    .quotes,.plain{margin:8px 0 0;padding-left:18px}
+    .quotes li,.plain li{margin:4px 0}
+    .steps{margin:0;padding-left:0;list-style:none;display:grid;gap:8px}
+    .steps li{display:grid;grid-template-columns:72px 1fr;gap:10px;font-size:.92rem}
+    .who{font-size:.75rem;font-weight:700;letter-spacing:.02em;padding:3px 0}
+    .who.ai{color:var(--green)}
+    .who.approve{color:var(--amber)}
+    .who.human{color:var(--accent)}
+    .md-view{margin:16px 0 0;background:var(--bg);border:1px solid var(--line);border-radius:var(--r-sm);padding:14px 16px;overflow:auto;max-height:320px;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.78rem;line-height:1.55}
+    .footnote{margin-top:18px;color:var(--muted);font-size:.78rem}
+    .toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:var(--ink);color:var(--paper);border-radius:999px;padding:9px 14px;font-size:.82rem;transition:.22s;z-index:10}
+    .toast.show{opacity:1;transform:translate(-50%,0)}
+    @media(max-width:900px){
+      .intro,.workspace{grid-template-columns:1fr}
+      .intro{gap:14px}
+      .input-panel{position:static}
+      .empty{min-height:280px}
+    }
+    @media(max-width:620px){
+      .shell{padding:18px 14px 44px}
+      .intro h1{font-size:2.05rem}
+      .panel-head,.form{padding-left:16px;padding-right:16px}
+      .output-head{display:block}
+      .output-actions{justify-content:flex-start;margin-top:12px}
+      .case-hero{grid-template-columns:1fr;padding:20px 16px}
+      .level{text-align:left}
+      .case-body{padding:4px 16px 18px}
+      .steps li{grid-template-columns:1fr;gap:2px}
+    }
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="intro">
+      <div>
+        <h1>把一份 JD 收成<em>能交接</em>的 Markdown</h1>
+      </div>
+      <div>
+        <p>貼上職缺全文。相關的職責會收成 1–6 份工作模組，每份都能複製給 AI。對不上的留在「仍然需要你本人」。</p>
+        <div class="framework-note"><span class="dot"></span><span>這是<strong>簡單版</strong>，在這台瀏覽器完成，不送出、不保存。它用職責句型歸併，不是逐條貼 AUTO／AUG／HUMAN，也不會為了湊數套上無關模板。</span></div>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <aside class="input-panel" aria-label="JD 輸入區">
+        <div class="panel-head"><span class="step">Step 01</span><h2>貼上 JD 全文</h2></div>
+        <form class="form" id="jdForm">
+          <div class="field">
+            <label for="jdText">職缺全文</label>
+            <textarea id="jdText" placeholder="貼上職稱、工作內容、任職條件。條列或編號都可以。" spellcheck="false"></textarea>
+            <div class="row">
+              <p class="hint" id="hint">全文是主輸入。連結抓不到時，把內文貼這裡。</p>
+              <span class="count" id="count">0 / 12000</span>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn btn-primary" id="runBtn" type="submit">收成工作模組</button>
+          </div>
+          <div class="samples" role="group" aria-label="範例職缺">
+            <button class="btn btn-secondary" type="button" data-sample="finance">財務分析師範例</button>
+            <button class="btn btn-secondary" type="button" data-sample="sales">業務專員範例</button>
+            <button class="btn btn-secondary" type="button" data-sample="nurse">護理師範例</button>
+          </div>
+          <div class="input-divider"><span>或試著讀連結</span></div>
+          <div class="field">
+            <label for="jdUrl">JD 連結</label>
+            <input id="jdUrl" type="url" placeholder="https://…" autocomplete="url" />
+            <p class="hint">多數職缺站會擋住跨站讀取。失敗的話，改貼全文即可。</p>
+          </div>
+          <button class="btn btn-secondary" id="fetchBtn" type="button" style="margin-top:10px">讀取連結</button>
+          <div class="link-mode" id="linkMode" role="alert"></div>
+          <div class="status" id="status" role="status" aria-live="polite"></div>
+        </form>
+      </aside>
+
+      <div class="results">
+        <section class="empty" id="emptyState">
+          <div class="empty-inner">
+            <h2>先給我一份 JD</h2>
+            <p>產出是數份可複製的 Markdown，外加一份仍然要你本人做的清單。不是另一份分析報告。</p>
+          </div>
+        </section>
+        <section class="output" id="output" aria-live="polite">
+          <div class="output-head">
+            <div>
+              <h2 id="roleTitle">工作模組</h2>
+              <p id="resultMeta"></p>
+            </div>
+            <div class="output-actions">
+              <button class="mini-btn" id="copyOneBtn" type="button">複製這份</button>
+              <button class="mini-btn" id="copyAllBtn" type="button">複製全部</button>
+              <button class="mini-btn" id="downloadBtn" type="button">下載 .md</button>
+              <button class="mini-btn" id="zipBtn" type="button">下載 .zip</button>
+            </div>
+          </div>
+          <div class="assumptions" id="assumptions"></div>
+          <nav class="case-tabs" id="caseTabs" aria-label="工作模組"></nav>
+          <article class="case" id="caseView"></article>
+          <pre class="md-view" id="mdView"></pre>
+          <p class="footnote">延伸閱讀：<a href="https://github.com/msitarzewski/agency-agents" target="_blank" rel="noopener">agency-agents</a>（MIT）的固定章節可以當寫 prompt 的參考。這裡不導入該套件，也不摘錄它的內文。產品方案見 <a href="docs/jd2md-proposal.md">docs/jd2md-proposal.md</a>。<a href="index.html">use case 工具</a>是另一頁，不是這個簡單版。</p>
+        </section>
+      </div>
+    </section>
+  </main>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="jd2md.js"></script>
+  <script>
+  (function () {
+    var state = { result: null, active: 0 };
+    var $ = function (id) { return document.getElementById(id); };
+    function esc(s) {
+      return String(s || '').replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function toast(msg) {
+      var node = $('toast');
+      node.textContent = msg;
+      node.classList.add('show');
+      setTimeout(function () { node.classList.remove('show'); }, 1800);
+    }
+    function levelClass(level) {
+      if (level === 'AUTO') return 'auto';
+      if (level === 'HUMAN-LEAD') return 'human';
+      return 'aug';
+    }
+    function levelName(level) {
+      if (level === 'AUTO') return '可直接交';
+      if (level === 'HUMAN-LEAD') return '人主導';
+      return '人機一起做';
+    }
+    function whoClass(who) {
+      if (who === 'AI 做') return 'ai';
+      if (who === '人核准') return 'approve';
+      return 'human';
+    }
+    function updateCount() {
+      var n = $('jdText').value.length;
+      var node = $('count');
+      node.textContent = n + ' / ' + JD2MD.MAX_CHARS;
+      node.classList.toggle('over', n > JD2MD.MAX_CHARS);
+    }
+    function views(result) {
+      var list = result.modules.map(function (item, index) {
+        return { id: 'm' + index, label: item.name, markdown: item.markdown, module: item };
+      });
+      if (result.human.length) {
+        var humanFile = result.files[result.files.length - 1];
+        list.push({ id: 'human', label: '仍然需要你本人', markdown: humanFile.markdown, human: result.human });
+      }
+      return list;
+    }
+    function renderModule(item, index, total) {
+      var steps = item.steps.map(function (step) {
+        return '<li><span class="who ' + whoClass(step[0]) + '">' + esc(step[0]) + '</span><span>' + esc(step[1]) + '</span></li>';
+      }).join('');
+      return '<header class="case-hero"><div><div class="case-index">模組 ' + (index + 1) + ' / ' + total + '</div><h3>' + esc(item.name) + '</h3><p>' + esc(item.trigger) + '時，交出' + esc(item.output) + '。</p></div><div class="level ' + levelClass(item.level) + '">' + esc(item.level) + '<span>' + esc(levelName(item.level)) + '</span></div></header>' +
+        '<div class="case-body">' +
+        '<section class="section"><h4>這個模組在做什麼</h4><p>' + esc(item.trigger) + '時，交出' + esc(item.output) + '。</p><ul class="quotes">' + item.bullets.map(function (bullet) { return '<li>' + esc(bullet) + '</li>'; }).join('') + '</ul></section>' +
+        '<section class="section"><h4>可取代程度</h4><p>' + esc(item.level) + '。' + esc(item.levelWhy) + '</p></section>' +
+        '<section class="section"><h4>輸入</h4><p>下面是這類工作通常要準備的東西，JD 沒寫到的不當作事實。</p><ul class="plain">' + item.inputs.map(function (line) { return '<li>' + esc(line) + '</li>'; }).join('') + '</ul></section>' +
+        '<section class="section"><h4>步驟</h4><ol class="steps">' + steps + '</ol></section>' +
+        '<section class="section"><h4>交付物與驗收</h4><p>' + esc(item.accept) + '</p></section>' +
+        '<section class="section"><h4>風險與人工把關</h4><ul class="plain">' + item.risks.map(function (line) { return '<li>' + esc(line) + '</li>'; }).join('') + '<li>若引用的原文其實不是這件事，拿掉這份。</li></ul></section>' +
+        '<section class="section"><h4>給 AI 的指令（可直接貼）</h4><pre class="md-view" style="margin:0">' + esc(item.prompt) + '</pre></section>' +
+        '</div>';
+    }
+    function renderHuman(items) {
+      return '<header class="case-hero"><div><div class="case-index">留給你本人</div><h3>仍然需要你本人</h3><p>這些職責沒有單獨的產出，或這版的句型對不上。不硬做成模組。</p></div></header>' +
+        '<div class="case-body"><section class="section"><h4>沒有收成模組的原文</h4><ul class="quotes">' +
+        items.map(function (item) { return '<li>' + esc(item.text) + '<div class="hint">' + esc(item.reason) + '</div></li>'; }).join('') +
+        '</ul></section></div>';
+    }
+    function showActive() {
+      var result = state.result;
+      if (!result) return;
+      var list = views(result);
+      if (!list.length) {
+        $('caseTabs').innerHTML = '';
+        $('caseView').innerHTML = '<header class="case-hero"><div><h3>沒有收成模組</h3><p>' + esc(result.error) + '</p></div></header>';
+        $('mdView').textContent = result.markdown || '';
+        return;
+      }
+      if (state.active >= list.length) state.active = 0;
+      $('caseTabs').innerHTML = list.map(function (item, index) {
+        return '<button class="case-tab" type="button" role="tab" data-i="' + index + '" aria-selected="' + (index === state.active ? 'true' : 'false') + '">' + esc(item.label) + '</button>';
+      }).join('');
+      var current = list[state.active];
+      $('caseView').innerHTML = current.module ? renderModule(current.module, state.active, result.modules.length) : renderHuman(current.human);
+      $('mdView').textContent = current.markdown;
+      Array.prototype.forEach.call(document.querySelectorAll('.case-tab'), function (btn) {
+        btn.addEventListener('click', function () {
+          state.active = Number(btn.getAttribute('data-i'));
+          showActive();
+        });
+      });
+    }
+    function render(message) {
+      var text = $('jdText').value;
+      var result = JD2MD.convert(text, { source: $('jdUrl').value.trim() });
+      if (!result.ok) {
+        $('status').classList.remove('success');
+        $('status').textContent = result.error;
+        return;
+      }
+      state.result = result;
+      state.active = 0;
+      $('roleTitle').textContent = result.title;
+      $('resultMeta').textContent = '收成 ' + result.modules.length + ' 個模組，' + result.human.length + ' 條留給你本人';
+      $('assumptions').textContent = result.modules.length
+        ? '草稿，未經模型改寫。每一份都引用 JD 原文；輸入清單是這類工作的建議，不是從 JD 推斷的事實。'
+        : result.error;
+      $('emptyState').style.display = 'none';
+      $('output').classList.add('show');
+      $('linkMode').classList.remove('show');
+      $('status').textContent = message || '已收成';
+      $('status').classList.add('success');
+      showActive();
+      if (window.innerWidth < 901) $('output').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function copyText(text, okMsg) {
+      if (!text) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { toast(okMsg); }).catch(function () { toast('無法存取剪貼簿'); });
+        return;
+      }
+      toast('無法存取剪貼簿');
+    }
+    function download(filename, blob) {
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    }
+    function fileBase() {
+      var title = state.result && state.result.title ? state.result.title : 'jd2md';
+      return title.replace(/[\\/:*?"<>|]/g, '').trim() || 'jd2md';
+    }
+    function htmlToText(html) {
+      var inert = new DOMParser().parseFromString(String(html || ''), 'text/html');
+      return (inert.body.textContent || '').replace(/\u00a0/g, ' ').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+    }
+    function findJobPosting(value) {
+      if (!value) return null;
+      if (Array.isArray(value)) {
+        for (var i = 0; i < value.length; i++) {
+          var found = findJobPosting(value[i]);
+          if (found) return found;
+        }
+        return null;
+      }
+      if (typeof value !== 'object') return null;
+      var type = value['@type'];
+      if (type === 'JobPosting' || (Array.isArray(type) && type.indexOf('JobPosting') !== -1)) return value;
+      if (value['@graph']) return findJobPosting(value['@graph']);
+      return null;
+    }
+    function extractFetchedJD(html) {
+      var doc = new DOMParser().parseFromString(html, 'text/html');
+      var scripts = doc.querySelectorAll('script[type="application/ld+json"]');
+      for (var i = 0; i < scripts.length; i++) {
+        try {
+          var job = findJobPosting(JSON.parse(scripts[i].textContent));
+          if (!job) continue;
+          var parts = [];
+          if (job.title) parts.push(htmlToText(job.title));
+          if (job.description) parts.push('工作內容：\n' + htmlToText(job.description));
+          if (job.responsibilities) parts.push('工作內容：\n' + htmlToText(job.responsibilities));
+          if (job.qualifications) parts.push('任職要求：\n' + htmlToText(job.qualifications));
+          var structured = parts.filter(Boolean).join('\n\n');
+          if (structured.length > 180) return structured;
+        } catch (ignore) {}
+      }
+      var title = ((doc.querySelector('h1') && doc.querySelector('h1').textContent) || doc.title || '').trim();
+      Array.prototype.forEach.call(doc.querySelectorAll('script,style,noscript,svg,form,nav,header,footer'), function (node) {
+        node.remove();
+      });
+      var root = doc.querySelector('[class*="job-description" i],[id*="job-description" i],[class*="jobDescription"],main,article') || doc.body;
+      var blocks = root ? Array.prototype.map.call(root.querySelectorAll('h1,h2,h3,h4,p,li'), function (node) {
+        return (node.textContent || '').replace(/\s+/g, ' ').trim();
+      }).filter(Boolean) : [];
+      var text = (blocks.length ? blocks.join('\n') : (root && root.textContent) || '').replace(/\u00a0/g, ' ').replace(/[ \t]+/g, ' ').replace(/\n\s*\n\s*\n/g, '\n\n').trim();
+      if (title && text.indexOf(title) !== 0) text = title + '\n\n' + text;
+      return text;
+    }
+    function fetchFailure(message) {
+      $('linkMode').innerHTML = '<strong>無法從連結讀取 JD</strong>' + esc(message) + ' 請改貼職缺全文，貼上後即可收成。';
+      $('linkMode').classList.add('show');
+      $('status').textContent = '';
+      $('status').classList.remove('success');
+      $('jdText').focus();
+    }
+    async function fetchAndFill() {
+      var btn = $('fetchBtn');
+      if (btn.disabled) return;
+      var url;
+      try { url = new URL($('jdUrl').value.trim()); } catch (e) { fetchFailure('連結格式無法辨識。'); return; }
+      if (url.protocol !== 'https:' && url.protocol !== 'http:') { fetchFailure('只支援 http 或 https 連結。'); return; }
+      var controller = new AbortController();
+      var timer = setTimeout(function () { controller.abort(); }, 15000);
+      btn.disabled = true;
+      btn.textContent = '正在讀取…';
+      $('status').classList.remove('success');
+      $('status').textContent = '正在連線並解析頁面';
+      $('linkMode').classList.remove('show');
+      try {
+        var response = await fetch(url.href, { method: 'GET', mode: 'cors', credentials: 'omit', redirect: 'follow', headers: { Accept: 'text/html,application/xhtml+xml' }, signal: controller.signal });
+        if (!response.ok) throw { kind: 'http', status: response.status };
+        var text = extractFetchedJD(await response.text());
+        if (text.length < 180) throw { kind: 'empty' };
+        $('jdText').value = text;
+        updateCount();
+        render('已從連結讀取，並收成工作模組');
+      } catch (error) {
+        if (error && error.name === 'AbortError') fetchFailure('讀取超過 15 秒，網站沒有在時限內回應。');
+        else if (error && error.kind === 'http') fetchFailure('網站回傳 HTTP ' + error.status + '，拒絕或無法提供這個頁面。');
+        else if (error && error.kind === 'empty') fetchFailure('頁面有回應，但內容是空白、登入頁或 JavaScript 外殼，找不到足夠的職缺文字。');
+        else fetchFailure('該網站未允許跨站讀取，或瀏覽器無法連上它。常見原因是 CORS 或防爬。');
+      } finally {
+        clearTimeout(timer);
+        btn.disabled = false;
+        btn.textContent = '讀取連結';
+      }
+    }
+    $('jdForm').addEventListener('submit', function (event) {
+      event.preventDefault();
+      render();
+    });
+    $('fetchBtn').addEventListener('click', fetchAndFill);
+    $('jdText').addEventListener('input', updateCount);
+    Array.prototype.forEach.call(document.querySelectorAll('[data-sample]'), function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-sample');
+        var found = JD2MD.SAMPLES.find(function (item) { return item.id === id; });
+        if (!found) return;
+        $('jdText').value = found.text;
+        $('jdUrl').value = '';
+        updateCount();
+        render('已載入' + found.label + '範例');
+      });
+    });
+    $('copyOneBtn').addEventListener('click', function () {
+      if (!state.result) return;
+      var list = views(state.result);
+      var current = list[state.active];
+      copyText(current && current.markdown, '這份 Markdown 已複製');
+    });
+    $('copyAllBtn').addEventListener('click', function () {
+      if (!state.result) return;
+      copyText(state.result.markdown, '全部 Markdown 已複製');
+    });
+    $('downloadBtn').addEventListener('click', function () {
+      if (!state.result || !state.result.markdown) return;
+      download(fileBase() + '-jd2md.md', new Blob([state.result.markdown], { type: 'text/markdown;charset=utf-8' }));
+    });
+    $('zipBtn').addEventListener('click', function () {
+      if (!state.result || !state.result.files.length) return;
+      download(fileBase() + '-jd2md.zip', new Blob([JD2MD.buildZip(state.result.files)], { type: 'application/zip' }));
+    });
+    var params = new URLSearchParams(location.search);
+    var preset = params.get('sample');
+    if (preset) {
+      var button = document.querySelector('[data-sample="' + preset + '"]');
+      if (button) button.click();
+    }
+    updateCount();
+  })();
+  </script>
+</body>
+</html>
