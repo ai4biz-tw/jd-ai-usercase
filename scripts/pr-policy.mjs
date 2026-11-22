@@ -4,6 +4,7 @@ import {
   blockers,
   classifyFiles,
   hardFailures,
+  isSameRepoHead,
   issueNumbers,
   scanText,
   scanTree,
@@ -48,6 +49,7 @@ const reasons = blockers({
   labels: (pull.labels || []).map((label) => label.name),
   classified: classifyFiles(files),
   unscanned: [],
+  sameRepo: isSameRepoHead(pull, repo),
 });
 
 out('## pr-policy');

@@ -143,8 +143,19 @@ export function hardFailures({ body, existingNumbers, missingNumbers, mergeable,
   return failures;
 }
 
-export function blockers({ draft, labels, classified, unscanned }) {
+// A branch can only be pushed to this repository by someone with write
+// access, so "head is in the same repository" is the authorisation check.
+// A missing head repo (deleted fork) counts as outside.
+export function isSameRepoHead(pull, repo) {
+  const head = pull?.head?.repo?.full_name;
+  return typeof head === 'string' && head.toLowerCase() === String(repo).toLowerCase();
+}
+
+export function blockers({ draft, labels, classified, unscanned, sameRepo }) {
   const reasons = [];
+  if (sameRepo !== true) {
+    reasons.push('head 分支不在這個 repo（來自 fork）。外部來的 PR 一律要 Jon 看過再手動合併');
+  }
   const present = new Set((labels || []).map((label) => String(label).toLowerCase()));
   for (const label of BLOCK_LABELS) {
     if (present.has(label)) reasons.push(`有標籤 \`${label}\``);

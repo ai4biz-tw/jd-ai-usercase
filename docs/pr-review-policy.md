@@ -35,6 +35,7 @@ squash 之後，workflow 會再 `workflow_dispatch` 一次 `main` 的 CI。用 `
 
 下面這些**不會**把 `pr-policy` 打紅。檢查全綠之後，Jon 仍可以手動 squash merge，不必用管理員身分硬合。
 
+- head 分支不在這個 repo（從 fork 開的 PR）。這個 repo 是公開的，任何人都能 fork 之後開 PR；能把分支推進這個 repo 的只有有寫入權限的人，所以只有本 repo 的分支才會自動合併。外部來的 PR 檢查全綠也要 Jon 看過再手動合。第一次貢獻者的 CI 要有人按核准才會跑，那顆按鈕只是讓檢查跑，不等於同意合併
 - 標籤 `do-not-merge` 或 `needs-human`
 - PR 還是草稿
 - 改到閘門定義：`.github/`（含 `.github/workflows/`）、`scripts/`、`.lychee.toml`、`.markdownlint-cli2.jsonc`、`.htmlvalidate.json`。改 workflow 必須由 Jon 合併。`scripts/` 和這些設定檔也算，避免 PR 先把檢查放鬆再把自己合進去

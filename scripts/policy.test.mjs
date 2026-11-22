@@ -8,6 +8,7 @@ import {
   classifyFiles,
   hardFailures,
   isGatePath,
+  isSameRepoHead,
   isSecretFilename,
   issueNumbers,
   requiredCheckState,
@@ -131,7 +132,27 @@ test('hard failures and auto-merge blockers stay separate', () => {
     labels: [],
     classified: { gate: false, deleted: [], lines: 10, fileCount: 1 },
     unscanned: [],
+    sameRepo: true,
   }).length, 0);
+});
+
+test('pull requests from forks never auto-merge', () => {
+  const clean = {
+    draft: false,
+    labels: [],
+    classified: { gate: false, deleted: [], lines: 10, fileCount: 1 },
+    unscanned: [],
+  };
+  assert.ok(blockers({ ...clean, sameRepo: false }).some((reason) => reason.includes('fork')));
+  // Callers that forget to pass the flag must fail closed.
+  assert.ok(blockers(clean).some((reason) => reason.includes('fork')));
+  assert.equal(blockers({ ...clean, sameRepo: true }).length, 0);
+
+  assert.equal(isSameRepoHead({ head: { repo: { full_name: repo } } }, repo), true);
+  assert.equal(isSameRepoHead({ head: { repo: { full_name: 'AI4Biz-TW/JD-AI-Usercase' } } }, repo), true);
+  assert.equal(isSameRepoHead({ head: { repo: { full_name: 'someone/jd-ai-usercase' } } }, repo), false);
+  assert.equal(isSameRepoHead({ head: { repo: null } }, repo), false);
+  assert.equal(isSameRepoHead({}, repo), false);
 });
 
 test('required checks use the latest run and ignore unrelated names', () => {

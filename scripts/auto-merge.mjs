@@ -11,6 +11,7 @@ import {
   classifyFiles,
   hardFailures,
   isBinaryPath,
+  isSameRepoHead,
   isSecretFilename,
   issueNumbers,
   requiredCheckState,
@@ -224,6 +225,7 @@ async function evaluate(number) {
     labels: (pull.labels || []).map((label) => label.name),
     classified,
     unscanned,
+    sameRepo: isSameRepoHead(pull, repo),
   });
 
   out(`## #${number}（${mode}）`);
